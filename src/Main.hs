@@ -1,9 +1,17 @@
+{-# LANGUAGE OverloadedStrings #-}
 module Main where
 
+import Reflex.Dom
 import Data.List
 
+import qualified Data.Text as T
+
 main :: IO ()
-main = putStrLn "Hello, Spencer Brown!"
+main = mainWidget $ do
+           text "Hello, Spencer Brown!"
+           text (T.pack . show $ theorem3)
+
+xx = show theorem3
 
 -- | 1
 -- | The form
@@ -17,8 +25,8 @@ data Distinction = PerfectContinence
 
 data Expr =
     Unmarked
-  | Call Expr Expr
   | Cross Expr
+  | Call Expr Expr
 
 instance Show Expr where
   show Unmarked = ""
@@ -74,5 +82,4 @@ data AlgExpr = AlgExpr
 
 -- | Appendix 2
 -- | The calculus interpreted as logic
-
 
