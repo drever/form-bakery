@@ -3,3 +3,9 @@ src/.DS_Store
 .ghc.environment.x86_64-darwin-8.5.20180118
 dist
 .ghc.environment.x86_64-darwin-8.4.3
+backend-result
+frontend-result
+dist-ghcjs
+ghc-frontend-result/
+ghc-frontend-result
+.ghc.environment.x86_64-darwin-8.4.4
