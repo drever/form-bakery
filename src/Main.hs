@@ -8,10 +8,8 @@ import qualified Data.Text as T
 
 main :: IO ()
 main = mainWidget $ do
-           text "Hello, Spencer Brown!"
-           text (T.pack . show $ theorem3)
-
-xx = show theorem3
+  el "p" $ text "Hello, Spencer Brown!"
+  text (T.pack . show $ theorem3)
 
 -- | 1
 -- | The form
