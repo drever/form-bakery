@@ -2,6 +2,7 @@ module Common where
 
 import Reflex.Dom
 import Data.List
+import Data.Maybe
 
 -- | 1
 -- | The form
@@ -14,20 +15,13 @@ data Distinction = PerfectContinence
 -- | Expression
 
 data Expr =
-    Unmarked
-  | Cross Expr
-  | Call Expr Expr
+    Cross Expr
+  | Call [Expr] --deriving (Show)
 
 instance Show Expr where
-  show Unmarked = ""
-  show (Call e1 e2) = show e1 ++ show e2
+--   show Unmarked = ""
   show (Cross e) = intercalate "" ["<", show e, ">"]
-
-instance Semigroup Expr where
-   e1 <> e2 = Call e1 e2
-
-instance Monoid Expr where
-   mempty = Unmarked
+  show (Call es) = intercalate "" $ map show es
 
 instance Read Expr where
    readsPrec _ = undefined
@@ -39,44 +33,58 @@ instance Read Expr where
 -- "<<><>>" -> Cross (Call (Cross Unmarked) (Cross Unmarked))
 -- "<<>><>" -> Call (Cross (Cross Unmarked)) (Cross Unmarked)
 
-parseExpr :: String -> Expr
-parseExpr xs = parseExpr' (0, 0) (const Unmarked) xs
+parseExpr' :: String -> (Maybe Expr, String)
+parseExpr' ('<':xs) = case parseList xs of
+                       (ps, '>':rs) -> (Just . Cross . Call $ ps, rs)
+                       (_, rs) -> (Nothing, rs)
+parseExpr' xs = (Nothing, xs)
 
-crossN :: Int -> Expr -> Expr
-crossN i = foldr (.) id (replicate i Cross)
+parseExpr :: String -> (Maybe Expr, String)
+parseExpr xs = case parseList xs of
+                 ([], rs) -> (Nothing, rs)
+                 (es, rs) -> (Just $ Call es, rs)
 
-parseExpr' :: (Int, Int) -> (Expr -> Expr) -> String -> Expr
-parseExpr' (0, 0) e ""  = (e Unmarked)
-parseExpr' (i, j) e ('>':xs) = undefined
-parseExpr' (i, j) e ('<':xs) = undefined
+parseList :: String -> ([Expr], String)
+parseList xs = case parseExpr' xs of
+                 (Just x, rs) -> let (ys, qs) = parseList rs
+                                  in (x:ys, qs)
+                 (Nothing, rs) -> ([], rs)
 
-unmarked = Unmarked
-marked = Cross Unmarked
+
+-- parseExpr' ss "" = callN ss
+-- parseExpr' ss ('<':xs) = parseExpr' (Unmarked : ss) xs
+-- parseExpr' (s:ss) ('>':[]) = callN (Cross s : ss)
+-- parseExpr' (s:ss) ('>':'>':xs) = parseExpr' (Cross s:ss) ('>':xs)
+-- parseExpr' (s:ss) ('>':'<':xs) = Call (Cross s) (parseExpr' ss ('<':xs))
+
+tt p = (show . parseExpr $ p) == p
+unmarked = Call []
+marked = Cross unmarked
 
 -- | Equivalence
 
-instance Eq Expr where
-    (Call e1 e2) == (Call e1' e2') = e1 == e1' && e2 == e2'
-    (Cross e) == (Cross e') = e == e'
-    Unmarked == Unmarked = True
-    Unmarked == _ = False
-    _ == Unmarked = False
+-- instance Eq Expr where
+--     -- (Call es) == (Call e1' e2') = e1 == e1' && e2 == e2'
+    -- (Cross e) == (Cross e') = e == e'
+    -- Unmarked == Unmarked = True
+    -- Unmarked == _ = False
+    -- _ == Unmarked = False
 
 -- | Primitive equation
 
-primitive1 (Call (Cross Unmarked) (Cross Unmarked)) = Call (Cross Unmarked) Unmarked
-primitive1 e = e
+-- primitive1 (Call (Cross Unmarked) (Cross Unmarked)) = Call (Cross Unmarked) Unmarked
+-- primitive1 e = e
 
-primitive2 (Cross (Cross Unmarked)) = Unmarked
-primitive2 e = e
+-- primitive2 (Cross (Cross Unmarked)) = Unmarked
+-- primitive2 e = e
 
 -- | Simple expressions
 
 simpleExpressions = [
-        Call marked marked
+        Call [marked, marked]
       , Cross marked
-      , Cross Unmarked
-      , Unmarked]
+      , Cross unmarked
+      , unmarked]
 
 -- | Operation
 cross = Cross
@@ -91,18 +99,19 @@ continence = undefined
 
 -- | Fourth canon. Hypothesis of simplification
 
-fourthCanon :: Expr
-fourthCanon = Call (Cross (Call (Cross Unmarked) (Cross Unmarked))) (Cross Unmarked)
-fourthCanon' = Call (Cross (Call marked marked)) marked
+-- fourthCanon :: Expr
+-- fourthCanon = Call [Cross (Call [Cross Unmarked, Cross Unmarked]), Cross Unmarked]
+-- fourthCanon' = Call [Cross (Call marked marked), marked]
 
-theorem3 =
-  Call (Cross
-     (Call (Cross
-         (Call
-               (Cross (Call marked marked))
-               (marked)))
-        (Cross marked)))
-    (Cross (Cross (Cross marked)))
+theorem3 = fromJust $ fst $ parseExpr "<<><>><>"
+-- theorem3 =
+--   Call [Cross
+--      (Call [Cross
+--          (Call
+--                (Cross (Call [marked, marked]))
+--                (marked)))
+--         (Cross marked)))
+--     (Cross (Cross (Cross marked))]]
 
 data AlgExpr = AlgExpr
 

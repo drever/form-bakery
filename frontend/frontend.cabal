@@ -23,6 +23,7 @@ executable frontend
                      , common
                      , reflex-dom
                      , text
+                     , file-embed 
 
-  hs-source-dirs:      src
+  hs-source-dirs:      src, css
   default-language:    Haskell2010

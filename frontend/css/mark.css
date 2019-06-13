@@ -1,0 +1,18 @@
+
+.call {
+}
+
+.cross {
+  border-top-style: solid;
+  border-top-width: 1px;
+  margin: 10px;
+  border-right-style: solid;
+  border-right-width: 1px;
+  display: inline-block;
+}
+
+.unmarked {
+  height: 10px;
+  width: 10px;
+}
+
