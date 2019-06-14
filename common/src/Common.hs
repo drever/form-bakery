@@ -16,22 +16,17 @@ data Distinction = PerfectContinence
 
 data Expr =
     Cross Expr
-  | Call [Expr] --deriving (Show)
+  | Call [Expr]
 
 instance Show Expr where
---   show Unmarked = ""
   show (Cross e) = intercalate "" ["<", show e, ">"]
   show (Call es) = intercalate "" $ map show es
 
 instance Read Expr where
-   readsPrec _ = undefined
-
--- "<>" -> Cross Unmarked
--- "<><>" -> Call (Cross Unmarked) (Cross Unmarked)
--- "<<>>" -> Cross (Cross Unmarked)
--- "<><><>" -> Call (Cross Unmarked) (Call (Cross Unmarked) (Cross Unmarked))
--- "<<><>>" -> Cross (Call (Cross Unmarked) (Cross Unmarked))
--- "<<>><>" -> Call (Cross (Cross Unmarked)) (Cross Unmarked)
+   readsPrec _ s = case parseExpr s of
+                      (Nothing, _) -> error $ "no parse: " ++ s
+                      (Just x, r) -> [(x, r)]
+   readList s = return $ parseList s
 
 parseExpr' :: String -> (Maybe Expr, String)
 parseExpr' ('<':xs) = case parseList xs of
@@ -50,14 +45,6 @@ parseList xs = case parseExpr' xs of
                                   in (x:ys, qs)
                  (Nothing, rs) -> ([], rs)
 
-
--- parseExpr' ss "" = callN ss
--- parseExpr' ss ('<':xs) = parseExpr' (Unmarked : ss) xs
--- parseExpr' (s:ss) ('>':[]) = callN (Cross s : ss)
--- parseExpr' (s:ss) ('>':'>':xs) = parseExpr' (Cross s:ss) ('>':xs)
--- parseExpr' (s:ss) ('>':'<':xs) = Call (Cross s) (parseExpr' ss ('<':xs))
-
-tt p = (show . parseExpr $ p) == p
 unmarked = Call []
 marked = Cross unmarked
 
