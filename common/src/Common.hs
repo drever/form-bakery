@@ -35,6 +35,7 @@ parseExpr' ('<':xs) = case parseList xs of
 parseExpr' xs = (Nothing, xs)
 
 parseExpr :: String -> (Maybe Expr, String)
+parseExpr "" = (Just unmarked, "")
 parseExpr xs = case parseList xs of
                  ([], rs) -> (Nothing, rs)
                  (es, rs) -> (Just $ Call es, rs)
@@ -86,19 +87,11 @@ continence = undefined
 
 -- | Fourth canon. Hypothesis of simplification
 
--- fourthCanon :: Expr
--- fourthCanon = Call [Cross (Call [Cross Unmarked, Cross Unmarked]), Cross Unmarked]
--- fourthCanon' = Call [Cross (Call marked marked), marked]
+fourthCanon :: Expr
+fourthCanon = Call [Cross (Call [Cross unmarked, Cross unmarked]), Cross unmarked]
+fourthCanon' = Call [Cross (Call [marked, marked]), marked]
 
 theorem3 = fromJust $ fst $ parseExpr "<<><>><>"
--- theorem3 =
---   Call [Cross
---      (Call [Cross
---          (Call
---                (Cross (Call [marked, marked]))
---                (marked)))
---         (Cross marked)))
---     (Cross (Cross (Cross marked))]]
 
 data AlgExpr = AlgExpr
 

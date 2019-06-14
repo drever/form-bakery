@@ -3,5 +3,6 @@ packages:
    common/
    backend/
    frontend/
+   test/
 
 
