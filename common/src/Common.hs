@@ -4,6 +4,8 @@ import Reflex.Dom
 import Data.List
 import Data.Maybe
 
+import Text.ParserCombinators.Parsec
+
 -- | 1
 -- | The form
 
@@ -23,28 +25,20 @@ instance Show Expr where
   show (Call es) = intercalate "" $ map show es
 
 instance Read Expr where
-   readsPrec _ s = case parseExpr s of
-                      (Nothing, _) -> error $ "no parse: " ++ s
-                      (Just x, r) -> [(x, r)]
-   readList s = return $ parseList s
+   readsPrec _ s = either (error . show)
+                          (\es -> [(Call es, "")]) $
+                          runParser pes () "" s
+   readList s = either (error . show)
+                       (\x -> [(x, "")]) $
+                       runParser pes () "" s
 
-parseExpr :: String -> (Maybe Expr, String)
-parseExpr "" = (Just unmarked, "")
-parseExpr xs = case parseList xs of
-                 ([], rs) -> (Nothing, rs)
-                 (es, rs) -> (Just $ Call es, rs)
+pe :: Parser Expr
+pe = (Cross . Call) <$> (char '<' *> pes <* char '>')
 
-parseExpr' :: String -> (Maybe Expr, String)
-parseExpr' ('<':xs) = case parseList xs of
-                       (ps, '>':rs) -> (Just . Cross . Call $ ps, rs)
-                       (_, rs) -> (Nothing, rs)
-parseExpr' xs = (Nothing, xs)
+pes :: Parser [Expr]
+pes = many pe
 
-parseList :: String -> ([Expr], String)
-parseList xs = case parseExpr' xs of
-                 (Just x, rs) -> let (ys, qs) = parseList rs
-                                  in (x:ys, qs)
-                 (Nothing, rs) -> ([], rs)
+parseExpr = runParser pe () ""
 
 unmarked = Call []
 marked = Cross unmarked
@@ -91,7 +85,8 @@ fourthCanon :: Expr
 fourthCanon = Call [Cross (Call [Cross unmarked, Cross unmarked]), Cross unmarked]
 fourthCanon' = Call [Cross (Call [marked, marked]), marked]
 
-theorem3 = fromJust $ fst $ parseExpr "<<><>><>"
+theorem3 :: Expr
+theorem3 = read "<<><>><>"
 
 data AlgExpr = AlgExpr
 

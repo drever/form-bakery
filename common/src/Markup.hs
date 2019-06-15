@@ -9,10 +9,10 @@ import Reflex.Dom
 import qualified Data.Text as T
 
 exprElement :: DomBuilder t m => T.Text -> m (Event t ())
-exprElement = match . fst . parseExpr . T.unpack
+exprElement = match . parseExpr . T.unpack
     where match = \case
-            Just x' -> showM x'
-            Nothing -> text "???" >> (return never)
+            Right x' -> showM x'
+            Left err -> text (T.pack $ show err) >> (return never)
 
 showM :: DomBuilder t m => Expr -> m (Event t ())
 showM = snd . (showM' (0, 0))
