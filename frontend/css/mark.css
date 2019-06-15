@@ -21,3 +21,9 @@ h1 {
   width: 10px;
 }
 
+.var {
+  height: 10px;
+  width: 10px;
+  display: inline-block;
+}
+

@@ -24,7 +24,7 @@ data Expr =
 instance Show Expr where
   show (Cross e) = intercalate "" ["<", show e, ">"]
   show (Call es) = intercalate "" $ map show es
-  show (Var a) = a:[]
+  show (Var a) = a:""
 
 instance Read Expr where
    readsPrec _ s = either (error . show)
@@ -46,7 +46,8 @@ pev = Var <$> letter
 pes :: Parser [Expr]
 pes = many pe
 
-parseExpr = runParser pe () ""
+parseExpr :: String -> Either ParseError Expr
+parseExpr s = Call <$> runParser pes () "" s
 
 unmarked = Call []
 marked = Cross unmarked
