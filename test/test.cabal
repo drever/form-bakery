@@ -24,6 +24,7 @@ test-suite test
                      , common
                      , hspec
                      , QuickCheck
+                     , containers
 
   hs-source-dirs:      src
   default-language:    Haskell2010

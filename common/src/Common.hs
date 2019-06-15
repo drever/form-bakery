@@ -1,8 +1,15 @@
+{-# LANGUAGE DeriveGeneric #-}
+
 module Common where
 
 import Reflex.Dom
 import Data.List
 import Data.Maybe
+import qualified Data.Map as Map
+import Data.Hashable
+import GHC.Generics
+import qualified Data.Set as Set
+
 
 import Text.ParserCombinators.Parsec
 
@@ -19,26 +26,34 @@ data Distinction = PerfectContinence
 data Expr =
     Cross Expr
   | Call [Expr]
-  | Var Char
+  | Var Char deriving (Show, Generic, Eq, Ord)
 
-instance Show Expr where
-  show (Cross e) = intercalate "" ["<", show e, ">"]
-  show (Call es) = intercalate "" $ map show es
-  show (Var a) = a:""
+instance Hashable Expr where
+
+type Env = Map.Map Char Expr
+
+-- instance Show Expr where
+--   show (Cross e) = intercalate "" ["<", show e, ">"]
+--   show (Call es) = intercalate "" $ map show es
+--   show (Var a) = a:""
 
 instance Read Expr where
    readsPrec _ s = either (error . show)
-                          (\es -> [(Call es, "")]) $
+                          (\es -> [(call es, "")]) $
                           runParser pes () "" s
    readList s = either (error . show)
                        (\x -> [(x, "")]) $
                        runParser pes () "" s
 
+call :: [Expr] -> Expr
+call (x:[]) = x
+call xs = Call xs
+
 pe :: Parser Expr
 pe = choice [pev, pe']
 
 pe' :: Parser Expr
-pe' = (Cross . Call) <$> (char '<' *> pes <* char '>')
+pe' = (Cross . call) <$> (char '<' *> pes <* char '>')
 
 pev :: Parser Expr
 pev = Var <$> letter
@@ -97,7 +112,18 @@ fourthCanon' = Call [Cross (Call [marked, marked]), marked]
 theorem3 :: Expr
 theorem3 = read "<<><>><>"
 
-data AlgExpr = AlgExpr
+d = Map.fromList [('a', marked), ('b', marked)]
+
+eval :: Env -> Expr -> Maybe Expr
+eval _ (Call []) = Just unmarked
+eval _ (Cross (Call [])) = Just marked
+eval _ (Cross (Cross x)) = eval d x
+eval d (Cross (Var x)) = eval d =<< Cross <$> Map.lookup x d
+eval d (Var x) = Map.lookup x d
+eval d (Call (e:[])) = eval d e
+eval d (Call es) = case sequence $ map (eval d) es of
+                      Nothing -> Nothing
+                      (Just es') -> eval d $ Call $ (filter (/=unmarked)) $(Set.toList (Set.fromList es'))
 
 -- | Appendix 2
 -- | The calculus interpreted as logic

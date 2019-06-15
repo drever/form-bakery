@@ -29,7 +29,6 @@ parseAndRenderWidget = do
       t <-  inputElement $ def
            & inputElementConfig_initialValue .~ (T.pack . show $ theorem3)
       dyn $ exprElement <$> _inputElement_value t
---      dynText $ (T.pack . show . (read :: String -> Expr) . T.unpack) <$> _inputElement_value t
       return ()
 
 

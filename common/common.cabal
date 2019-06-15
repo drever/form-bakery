@@ -23,5 +23,7 @@ library
                      , reflex-dom
                      , text
                      , parsec
+                     , hashable
+                     , containers
   hs-source-dirs:      src
   default-language:    Haskell2010
