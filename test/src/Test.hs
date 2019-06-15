@@ -22,9 +22,9 @@ main = hspec $ do
 
 
 instance Arbitrary Expr where
-    arbitrary = oneof [
-           return $ Call []
-          , Cross <$> arbitrary
-          , Call <$> (sized $ \i -> mapM (const arbitrary) [0..1])
+    arbitrary = frequency [
+            (35, return $ marked)
+          , (1, Cross <$> arbitrary)
+          , (1, Call <$> listOf arbitrary)
          ]
 

@@ -28,17 +28,17 @@ instance Read Expr where
                       (Just x, r) -> [(x, r)]
    readList s = return $ parseList s
 
-parseExpr' :: String -> (Maybe Expr, String)
-parseExpr' ('<':xs) = case parseList xs of
-                       (ps, '>':rs) -> (Just . Cross . Call $ ps, rs)
-                       (_, rs) -> (Nothing, rs)
-parseExpr' xs = (Nothing, xs)
-
 parseExpr :: String -> (Maybe Expr, String)
 parseExpr "" = (Just unmarked, "")
 parseExpr xs = case parseList xs of
                  ([], rs) -> (Nothing, rs)
                  (es, rs) -> (Just $ Call es, rs)
+
+parseExpr' :: String -> (Maybe Expr, String)
+parseExpr' ('<':xs) = case parseList xs of
+                       (ps, '>':rs) -> (Just . Cross . Call $ ps, rs)
+                       (_, rs) -> (Nothing, rs)
+parseExpr' xs = (Nothing, xs)
 
 parseList :: String -> ([Expr], String)
 parseList xs = case parseExpr' xs of
