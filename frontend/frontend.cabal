@@ -24,6 +24,7 @@ executable frontend
                      , reflex-dom
                      , text
                      , file-embed 
+                     , mtl
 
   hs-source-dirs:      src, css
   default-language:    Haskell2010

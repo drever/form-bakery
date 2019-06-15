@@ -19,10 +19,12 @@ data Distinction = PerfectContinence
 data Expr =
     Cross Expr
   | Call [Expr]
+  | Var Char
 
 instance Show Expr where
   show (Cross e) = intercalate "" ["<", show e, ">"]
   show (Call es) = intercalate "" $ map show es
+  show (Var a) = a:[]
 
 instance Read Expr where
    readsPrec _ s = either (error . show)
@@ -33,7 +35,13 @@ instance Read Expr where
                        runParser pes () "" s
 
 pe :: Parser Expr
-pe = (Cross . Call) <$> (char '<' *> pes <* char '>')
+pe = choice [pev, pe']
+
+pe' :: Parser Expr
+pe' = (Cross . Call) <$> (char '<' *> pes <* char '>')
+
+pev :: Parser Expr
+pev = Var <$> letter
 
 pes :: Parser [Expr]
 pes = many pe

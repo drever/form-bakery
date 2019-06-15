@@ -12,11 +12,10 @@ import Common
 import Markup
 
 main :: IO ()
--- main = mainWidget $ display =<< count =<< button "ClickMe!"
 main = mainWidgetWithCss css  $ do
   heading
   el "div" parseAndRenderWidget
-  display =<< count =<< exprElement "<<>><>"
+--  display =<< count =<< exprElement "<<>><>"
   return ()
 
    where css = $(embedFile "css/mark.css")
@@ -29,6 +28,7 @@ parseAndRenderWidget :: (DomBuilder t m, PostBuild t m) => m ()
 parseAndRenderWidget = do
       t <-  inputElement $ def
            & inputElementConfig_initialValue .~ (T.pack . show $ theorem3)
-      dynText $ {-(fmap exprElement) $-} _inputElement_value t
+      dyn $ exprElement <$> _inputElement_value t
+      return ()
 
 

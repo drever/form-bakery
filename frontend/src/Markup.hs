@@ -1,18 +1,19 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE LambdaCase #-}
 
-module Markup (showM, exprElement) where
+module Markup (exprElement) where
 
 import Common
 import Reflex.Dom
+import Control.Monad.State
 
 import qualified Data.Text as T
 
-exprElement :: DomBuilder t m => T.Text -> m (Event t ())
+exprElement :: DomBuilder t m => T.Text -> m ()
 exprElement = match . parseExpr . T.unpack
     where match = \case
-            Right x' -> showM x'
-            Left err -> text (T.pack $ show err) >> (return never)
+            Right x' -> showM x' >> return ()
+            Left err -> text (T.pack $ show err) -- >> (return never)
 
 showM :: DomBuilder t m => Expr -> m (Event t ())
 showM = snd . (showM' (0, 0))
@@ -23,6 +24,12 @@ showM' (i, j) (Call []) = (
           , divButton
                 "unmarked" (T.pack $ show (i, j))
                 (text ""))
+
+showM' (i, j) (Var e) = (
+              (i, j)
+           , divButton
+                "var" (T.pack $ show (i, j))
+                (text (T.pack $ e:[])))
 
 showM' (i, j) (Call es) = (
             (i, j)
