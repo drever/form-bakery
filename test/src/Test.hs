@@ -27,8 +27,8 @@ main = hspec $ do
              eval env (read exp) == r)
         [ ("<<a><b>>", marked, marked, Just marked)
         , ("<<a><b>>", unmarked, marked, Just unmarked)
-        -- , ("<<a><b>>", marked, unmarked, Just unmarked)
-        -- , ("<<a><b>>", unmarked, unmarked, Just unmarked)
+        , ("<<a><b>>", marked, unmarked, Just unmarked)
+        , ("<<a><b>>", unmarked, unmarked, Just unmarked)
         ]
 
 

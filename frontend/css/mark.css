@@ -4,6 +4,11 @@ h1 {
   font-size: 15px;
 }
 
+p {
+    font-family: 'Raleway', sans-serif;
+    font-size: 10px;
+}
+
 .call {
 }
 

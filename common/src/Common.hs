@@ -26,16 +26,16 @@ data Distinction = PerfectContinence
 data Expr =
     Cross Expr
   | Call [Expr]
-  | Var Char deriving (Show, Generic, Eq, Ord)
+  | Var Char deriving (Generic, Eq, Ord)
 
 instance Hashable Expr where
 
 type Env = Map.Map Char Expr
 
--- instance Show Expr where
---   show (Cross e) = intercalate "" ["<", show e, ">"]
---   show (Call es) = intercalate "" $ map show es
---   show (Var a) = a:""
+instance Show Expr where
+  show (Cross e) = intercalate "" ["<", show e, ">"]
+  show (Call es) = intercalate "" $ map show es
+  show (Var a) = a:""
 
 instance Read Expr where
    readsPrec _ s = either (error . show)

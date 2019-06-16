@@ -1,7 +1,8 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE LambdaCase #-}
 
-module Markup (exprElement) where
+module Markup (exprElement
+             , exprEvalElement) where
 
 import Common
 import Reflex.Dom
@@ -9,21 +10,27 @@ import Control.Monad.State
 
 import qualified Data.Text as T
 
-exprElement :: DomBuilder t m => T.Text -> m ()
+exprEvalElement :: DomBuilder t m => Env -> T.Text -> m (Event t ())
+exprEvalElement env = match . parseExpr . T.unpack
+    where match = \case
+            Right x' -> showM . (maybe (Var '?') id) . (eval env) $ x'
+            Left err -> text (T.pack $ show err) >> (return never)
+
+exprElement :: DomBuilder t m => T.Text -> m (Event t ())
 exprElement = match . parseExpr . T.unpack
     where match = \case
             Right x' -> showM x'
-            Left err -> text (T.pack $ show err) -- >> (return never)
+            Left err -> text (T.pack $ show err) >> (return never)
 
 showM :: DomBuilder t m
       => Expr
-      -> m ()
+      -> m (Event t ())
 showM = snd . (showM' (0, 0))
 
 showM' :: DomBuilder t m
           => (Int, Int)
           -> Expr
-          -> ((Int, Int), m ())
+          -> ((Int, Int), m (Event t ()))
 showM' (i, j) (Call []) = (
             (i, j)
           , divButton
@@ -52,9 +59,8 @@ divButton :: DomBuilder t m
           => T.Text
           -> T.Text
           -> m a
-          -> m ()
+          -> m (Event t ())
 divButton c cs e = do
-           (e', _) <- elClass' "div" c e
---           return $ domEvent Click e'
-           return ()
+          (e', _) <- elClass' "div" c e
+          return $ domEvent Click e'
 
