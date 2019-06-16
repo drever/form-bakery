@@ -8,7 +8,7 @@ import Data.Maybe
 import qualified Data.Map as Map
 import Data.Hashable
 import GHC.Generics
-import qualified Data.Set as Set
+import Data.List
 
 
 import Text.ParserCombinators.Parsec
@@ -114,16 +114,23 @@ theorem3 = read "<<><>><>"
 
 d = Map.fromList [('a', marked), ('b', marked)]
 
-eval :: Env -> Expr -> Maybe Expr
-eval _ (Call []) = Just unmarked
-eval _ (Cross (Call [])) = Just marked
-eval _ (Cross (Cross x)) = eval d x
-eval d (Cross (Var x)) = eval d =<< Cross <$> Map.lookup x d
-eval d (Var x) = Map.lookup x d
-eval d (Call (e:[])) = eval d e
-eval d (Call es) = case sequence $ map (eval d) es of
-                      Nothing -> Nothing
-                      (Just es') -> eval d $ Call $ (filter (/=unmarked)) $(Set.toList (Set.fromList es'))
+eval :: Env -> Expr -> Either String Expr
+eval _ (Call []) = Right unmarked
+eval d (Call es) = case mapM (eval d) es of
+                      Left err -> Left err
+                      (Right es') -> Right $ case filter (==marked) $ es' of
+                                       [] ->unmarked
+                                       _ -> marked
+eval d (Var x) = case Map.lookup x d of
+                    Nothing -> Left $ "Variable not in scope: " ++ x:""
+                    (Just v) -> eval d v
+eval d (Cross v) = case eval d v of
+                     Left err -> Left err
+                     (Right (Call [])) -> Right marked
+                     (Right (Call es)) -> Right unmarked
+                     (Right (Cross x)) -> Right x
+
+
 
 -- | Appendix 2
 -- | The calculus interpreted as logic

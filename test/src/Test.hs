@@ -21,20 +21,26 @@ main = hspec $ do
         property $ \e -> let s = show (e :: Expr)
                           in (show . (read :: String -> Expr) $ s) == (s :: String)
   describe "Evaluation" $ do
-     mapM_ (\(exp, a, b, r) ->
+     describe "and" $ do
+         checkTable $ truthTable "<<a><b>>" (&&)
+     describe "or" $ do
+         checkTable $ truthTable "ab" (||)
+     describe "implies" $ do
+         checkTable $ truthTable "<a>b" (\a b -> not a || b)
+
+
+
+
+checkTable t = mapM_ (\(exp, a, b, r) ->
          it (unwords [exp, ", a = ", show a, ", b = ", show b, " => r = ", show r]) $ do
              let env = Map.fromList [('a', a), ('b', b)] :: Env
-             eval env (read exp) == r)
-        [ ("<<a><b>>", marked, marked, Just marked)
-        , ("<<a><b>>", unmarked, marked, Just unmarked)
-        , ("<<a><b>>", marked, unmarked, Just unmarked)
-        , ("<<a><b>>", unmarked, unmarked, Just unmarked)
-        ]
+             eval env (read exp) == r) $ t
 
-
-
-
-
+truthTable p f =
+    let fromBool b = if b then marked else unmarked
+     in  [(p, fromBool a, fromBool b, Right . fromBool $ a `f` b)
+                           | a <- [False .. True]
+                           , b <- [False .. True]]
 
 instance Arbitrary Expr where
     arbitrary = frequency [

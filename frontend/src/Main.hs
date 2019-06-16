@@ -15,6 +15,7 @@ main :: IO ()
 main = mainWidgetWithCss css  $ do
   heading
   el "div" parseAndRenderWidget
+  el "hr" (text "")
   display =<< count =<< exprElement "<<>><>"
   return ()
 
