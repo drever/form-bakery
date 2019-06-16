@@ -16,23 +16,26 @@ main = mainWidgetWithCss css  $ do
   heading
   el "div" parseAndRenderWidget
   el "hr" (text "")
-  display =<< count =<< exprElement "<<>><>"
+  display =<< count =<< (either parseError expression . parseExpr $ "<<>><>")
   return ()
 
    where css = $(embedFile "css/mark.css")
 
 heading :: DomBuilder t m => m ()
 heading = do
-  el "h1" $ text "Form Backery"
+  el "h1" $ text "Form Bakery"
   el "p" $ text "An invitation to the Laws of Form"
 
 parseAndRenderWidget :: (DomBuilder t m, PostBuild t m) => m ()
 parseAndRenderWidget = do
       t <-  inputElement $ def
            & inputElementConfig_initialValue .~ "<a>b"
-      dyn $ exprElement <$> _inputElement_value t
+      dyn $ either parseError expression
+            . parseExpr
+            <$> _inputElement_value t
       let env = Map.fromList [('a', marked), ('b', marked)]
-      dyn $ (exprEvalElement env) <$> _inputElement_value t
+      dyn $ either parseError expression
+           . (\t' -> parseExpr t' >>= eval env)
+           <$> _inputElement_value t
       return ()
-
 

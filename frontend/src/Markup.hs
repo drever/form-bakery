@@ -1,8 +1,8 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE LambdaCase #-}
 
-module Markup (exprElement
-             , exprEvalElement) where
+module Markup (expression
+             , parseError) where
 
 import Common
 import Reflex.Dom
@@ -10,50 +10,40 @@ import Control.Monad.State
 
 import qualified Data.Text as T
 
-exprEvalElement :: DomBuilder t m => Env -> T.Text -> m (Event t ())
-exprEvalElement env = match . parseExpr . T.unpack
-    where match = \case
-            Right x' -> showM . (maybe (Var '?') id) . (eval env) $ x'
-            Left err -> text (T.pack $ show err) >> (return never)
+parseError err = (text . T.pack . show $ err) >> (return never)
 
-exprElement :: DomBuilder t m => T.Text -> m (Event t ())
-exprElement = match . parseExpr . T.unpack
-    where match = \case
-            Right x' -> showM x'
-            Left err -> text (T.pack $ show err) >> (return never)
-
-showM :: DomBuilder t m
+expression :: DomBuilder t m
       => Expr
       -> m (Event t ())
-showM = snd . (showM' (0, 0))
+expression = snd . (expression' (0, 0))
 
-showM' :: DomBuilder t m
+expression' :: DomBuilder t m
           => (Int, Int)
           -> Expr
           -> ((Int, Int), m (Event t ()))
-showM' (i, j) (Call []) = (
+expression' (i, j) (Call []) = (
             (i, j)
           , divButton
                 "unmarked" (T.pack $ show (i, j))
                 (text ""))
 
-showM' (i, j) (Var e) = (
+expression' (i, j) (Var e) = (
               (i, j)
            , divButton
                 "var" (T.pack $ show (i, j))
                 (text (T.pack $ e:[])))
 
-showM' (i, j) (Call es) = (
+expression' (i, j) (Call es) = (
             (i, j)
           , divButton
                 "call" (T.pack $ show (i, j))
-                (mapM_ ((\(j', e) -> snd $ showM' (i, j') e)) (zip [1..] es)))
+                (mapM_ ((\(j', e) -> snd $ expression' (i, j') e)) (zip [1..] es)))
 
-showM' (i, j) (Cross e) = (
+expression' (i, j) (Cross e) = (
             (i, j)
           , divButton
                 "cross" (T.pack $ show (i, j))
-                (snd $ showM' (i + 1, j) e))
+                (snd $ expression' (i + 1, j) e))
 
 divButton :: DomBuilder t m
           => T.Text

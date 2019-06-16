@@ -9,7 +9,7 @@ import qualified Data.Map as Map
 import Data.Hashable
 import GHC.Generics
 import Data.List
-
+import qualified Data.Text as T
 
 import Text.ParserCombinators.Parsec
 
@@ -45,6 +45,11 @@ instance Read Expr where
                        (\x -> [(x, "")]) $
                        runParser pes () "" s
 
+getVars :: Expr -> [Char]
+getVars (Cross e) = getVars e
+getVars (Call es) = concat $ map getVars es
+getVars (Var v) = return v
+
 call :: [Expr] -> Expr
 call (x:[]) = x
 call xs = Call xs
@@ -61,8 +66,9 @@ pev = Var <$> letter
 pes :: Parser [Expr]
 pes = many pe
 
-parseExpr :: String -> Either ParseError Expr
-parseExpr s = Call <$> runParser pes () "" s
+parseExpr :: T.Text -> Either String Expr
+parseExpr s = either (Left . show) (Right . Call . id) $
+                 runParser pes () "" (T.unpack s)
 
 unmarked = Call []
 marked = Cross unmarked
