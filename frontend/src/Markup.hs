@@ -2,15 +2,30 @@
 {-# LANGUAGE LambdaCase #-}
 
 module Markup (expression
-             , parseError) where
+             , parseError
+             , truthTable) where
 
 import Common
 import Reflex.Dom
 import Control.Monad.State
-
+import qualified Data.Map as Map
 import qualified Data.Text as T
 
 parseError err = (text . T.pack . show $ err) >> (return never)
+
+truthTable :: DomBuilder t m
+      => Expr
+      -> m (Event t ())
+truthTable e = case listValues e of
+                 [] -> (text "") >>  return never
+                 vs -> do el "table" $ do
+                             el "tr" $ do let ns = map fst . Map.toList . fst . head $ vs :: [Char]
+                                          mapM_ (\v -> el "th" (text (T.pack . (:[]) $ v))) ns
+                                          el "th" (expression e)
+                             mapM_ (\vs'' -> el "tr" $ do let vs' = map snd . Map.toList . fst $ vs'' :: [Expr]
+                                                          mapM_ (\v -> el "td" (expression $ v)) (vs' :: [Expr])
+                                                          el "td" (expression . snd $ vs'')) (vs :: [(Env, Expr)])
+                          return never
 
 expression :: DomBuilder t m
       => Expr

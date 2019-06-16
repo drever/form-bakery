@@ -33,9 +33,9 @@ parseAndRenderWidget = do
       dyn $ either parseError expression
             . parseExpr
             <$> _inputElement_value t
-      let env = Map.fromList [('a', marked), ('b', marked)]
-      dyn $ either parseError expression
-           . (\t' -> parseExpr t' >>= eval env)
-           <$> _inputElement_value t
+
+      dyn $ either parseError truthTable
+          . parseExpr
+          <$> _inputElement_value t
       return ()
 

@@ -22,23 +22,21 @@ main = hspec $ do
                           in (show . (read :: String -> Expr) $ s) == (s :: String)
   describe "Evaluation" $ do
      describe "and" $ do
-         checkTable $ truthTable "<<a><b>>" (&&)
+         checkTable "<<a><b>>" $ truthTable (&&)
      describe "or" $ do
-         checkTable $ truthTable "ab" (||)
-     describe "implies" $ do
-         checkTable $ truthTable "<a>b" (\a b -> not a || b)
+         checkTable "ab" $ truthTable (||)
+     describe "implication" $ do
+         checkTable "<a>b" $ truthTable (\a b -> not a || b)
 
 
-
-
-checkTable t = mapM_ (\(exp, a, b, r) ->
+checkTable exp t = mapM_ (\(a, b, r) ->
          it (unwords [exp, ", a = ", show a, ", b = ", show b, " => r = ", show r]) $ do
              let env = Map.fromList [('a', a), ('b', b)] :: Env
-             eval env (read exp) == r) $ t
+             eval env (read exp) `shouldBe` r) $ t
 
-truthTable p f =
+truthTable f =
     let fromBool b = if b then marked else unmarked
-     in  [(p, fromBool a, fromBool b, Right . fromBool $ a `f` b)
+     in  [(fromBool a, fromBool b, Right . fromBool $ a `f` b)
                            | a <- [False .. True]
                            , b <- [False .. True]]
 

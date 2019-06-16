@@ -5,11 +5,13 @@ module Common where
 import Reflex.Dom
 import Data.List
 import Data.Maybe
+import Data.Either
 import qualified Data.Map as Map
 import Data.Hashable
 import GHC.Generics
 import Data.List
 import qualified Data.Text as T
+import Control.Monad
 
 import Text.ParserCombinators.Parsec
 
@@ -45,10 +47,18 @@ instance Read Expr where
                        (\x -> [(x, "")]) $
                        runParser pes () "" s
 
-getVars :: Expr -> [Char]
-getVars (Cross e) = getVars e
-getVars (Call es) = concat $ map getVars es
-getVars (Var v) = return v
+listValues :: Expr -> [(Env, Expr)]
+listValues e = map (\env -> let r = fromRight undefined $ eval env e
+                             in (env, r)) (allEnvs e)
+
+allEnvs :: Expr -> [Env]
+allEnvs e = let getVars (Cross e) = getVars e
+                getVars (Call es) = concat $ map getVars es
+                getVars (Var v) = return v
+
+                vs = sort . getVars $ e
+                bs = replicateM (length vs) [marked, unmarked]
+             in map (Map.fromList . (zip vs)) bs
 
 call :: [Expr] -> Expr
 call (x:[]) = x

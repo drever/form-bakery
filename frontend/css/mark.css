@@ -8,6 +8,9 @@ p {
     font-family: 'Raleway', sans-serif;
     font-size: 10px;
 }
+table, th, td {
+  border: 1px solid black;
+}
 
 .call {
 }
