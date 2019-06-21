@@ -16,7 +16,8 @@ parseError err = (text . T.pack . show $ err) >> (return never)
 truthTable :: DomBuilder t m
       => Expr
       -> m (Event t ())
-truthTable e = case listValues e of
+truthTable e = elClass "div" "truthtable" $ do
+                case listValues e of
                  [] -> (text "") >>  return never
                  vs -> do el "table" $ do
                              el "tr" $ do let ns = map fst . Map.toList . fst . head $ vs :: [Char]

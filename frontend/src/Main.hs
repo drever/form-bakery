@@ -23,19 +23,20 @@ main = mainWidgetWithCss css  $ do
 
 heading :: DomBuilder t m => m ()
 heading = do
-  el "h1" $ text "Form Bakery"
+  el "h1" $ text "The Form Bakery"
   el "p" $ text "An invitation to the Laws of Form"
 
 parseAndRenderWidget :: (DomBuilder t m, PostBuild t m) => m ()
 parseAndRenderWidget = do
       t <-  inputElement $ def
            & inputElementConfig_initialValue .~ "<a>b"
-      dyn $ either parseError expression
-            . parseExpr
-            <$> _inputElement_value t
+      elClass "div" "output" $ do
+          dyn $ either parseError expression
+               . parseExpr
+               <$> _inputElement_value t
 
-      dyn $ either parseError truthTable
-          . parseExpr
-          <$> _inputElement_value t
+          dyn $ either (const (return never)) truthTable
+              . parseExpr
+              <$> _inputElement_value t
       return ()
 

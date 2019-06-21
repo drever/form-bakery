@@ -9,29 +9,78 @@ p {
     font-size: 10px;
 }
 table, th, td {
-  border: 1px solid black;
+  border: 2px solid black;
+  border-collapse: collapse;
+}
+
+.output {
+  padding: 10px;
+}
+
+.expression {
+  padding: 10px;
+}
+
+.truthtable {
+  padding: 10px;
 }
 
 .call {
+  border-width: 1px;
+
+  padding-top: 0px;
+  padding-right: 0px;
+  padding-bottom: 0px;
+  padding-left: 0px;
+
+  /* background-color: gainsboro; */
+
+  display: flex;
 }
 
 .cross {
+  border-width: 1px;
+
   border-top-style: solid;
-  border-top-width: 1px;
-  margin: 10px;
   border-right-style: solid;
-  border-right-width: 1px;
+
+  padding-top: 5px;
+  padding-right: 5px;
+  padding-bottom: 0px;
+  padding-left: 0px;
+
+  margin-left: 1px;
+
+  /* background-color: cornflowerblue; */
+
   display: inline-block;
 }
 
 .unmarked {
-  height: 10px;
-  width: 10px;
+  border-width: 1px;
+
+  padding-top: 5px;
+  padding-right: 5px;
+  padding-bottom: 0px;
+  padding-left: 0px;
+
+  height: 20px;
+  width: 20px;
+
+  /* background-color: violet; */
 }
 
 .var {
-  height: 10px;
-  width: 10px;
-  display: inline-block;
+  border-width: 1px;
+
+  padding-top: 5px;
+  padding-right: 5px;
+  padding-bottom: 0px;
+  padding-left: 0px;
+
+  height: 20px;
+  width: 20px;
+
+  /* background-color: aqua; */
 }
 
