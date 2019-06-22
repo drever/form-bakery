@@ -11,6 +11,7 @@ p {
 table, th, td {
   border: 2px solid black;
   border-collapse: collapse;
+  padding: 5px;
 }
 
 .output {
@@ -80,6 +81,9 @@ table, th, td {
 
   height: 20px;
   width: 20px;
+
+  font-family: 'Raleway', sans-serif;
+  font-size: 7px;
 
   /* background-color: aqua; */
 }
