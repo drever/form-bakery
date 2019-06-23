@@ -22,10 +22,13 @@ executable frontend
   build-depends:       base >=4.11 && <4.12
                      , common
                      , reflex-dom
+                     , reflex
+                     , reflex-dom-svg
                      , text
                      , file-embed 
                      , mtl
                      , containers
+                     , lens
 
   hs-source-dirs:      src, css
   default-language:    Haskell2010

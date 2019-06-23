@@ -1,15 +1,25 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TypeFamilies #-}
 
 module Markup (expression
              , parseError
+             , expressionSVG
              , truthTable) where
 
+import Control.Applicative
 import Common
 import Reflex.Dom
+import Reflex (Dynamic)
 import Control.Monad.State
 import qualified Data.Map as Map
 import qualified Data.Text as T
+import qualified Reflex.Dom.Widget.SVG as S
+import Reflex.Dom.Widget.SVG.Types (SVG_Rect)
+import qualified Reflex.Dom.Widget.SVG.Types as S
+import Control.Lens ((^?), (+~), (?~), (#), from, at)
+import Reflex.Dom.Core (MonadWidget, (=:))
 
 parseError err = (text . T.pack . show $ err) >> (return never)
 
@@ -31,10 +41,8 @@ truthTable e = elClass "div" "truthtable" $ do
 expression :: DomBuilder t m
       => Expr
       -> m (Event t ())
-expression e = snd . (expression' (0, 0))
-     -- let ((w, h), b) = expressionSvg e
-     --     viewBox = T.unwords ["0", "0", T.pack . show $ w, T.pack . show $ h]
-      -- in elAttr "svg" ("viewBox" =: viewBox) (b (0, 0))
+expression = snd . (expression' (0, 0))
+
 
 expression' :: DomBuilder t m
           => (Int, Int)
@@ -73,18 +81,48 @@ divButton c cs e = do
           (e', _) <- elClass' "div" c e
           return $ domEvent Click e'
 
+-- SVG
+--
 type Position = (Int, Int)
 type Size = (Int, Int)
 
 baseSize = 20
 
+expressionSVG :: forall t m. (MonadWidget t m) => m ()
+expressionSVG = --snd . (expression' (0, 0))
+     -- let ((w', h'), b) = expressionSvg e
+     let w' = 100
+         h' = 100
+         w = S.Width $ fromIntegral w'
+         h = S.Height $ fromIntegral h'
+         viewBox = pure $ S.ViewBox 0 0 w h
+         svgProps = pure $ S.SVG_El w h (viewBox)
+
+         dRect1 = S.SVG_Rect
+                    (S._PosX # 40.0)
+                    (S._PosY # 40.0)
+                    (S.Width 50.0)
+                    (S.Height 50.0)
+                    Nothing
+                    Nothing
+         -- shiftRect :: Dynamic t SVG_Rect -> Dynamic t SVG_Rect
+         -- shiftRect = fmap (S.svg_rect_pos_x . S._PosX +~ 70.0)
+
+         attrs = mempty
+             & at "id" ?~ "svg1"
+             & at "class" ?~ "blue no-yellow"
+      in do
+            _ <- S.svg_ svgProps $ do
+                      S.svgBasicDyn S.Rectangle (mappend attrs . S.makeRectProps) (pure dRect1) (pure mempty)
+                     --b (0, 0)
+            pure ()
 lineAttr :: Int -> Int -> Int -> Int -> T.Text -> Map.Map T.Text T.Text
 lineAttr x1 y1 x2 y2 stroke = Map.fromList [("x1", T.pack . show $ x1), ("y1", T.pack . show $ y1), ("x2", T.pack . show $ x2), ("y2", T.pack . show $ y2), ("stroke", stroke)]
 
-expressionSvg :: DomBuilder t m
+expressionSvg' :: DomBuilder t m
           => Expr
           -> (Size, Position -> m (Event t ()))
-expressionSvg (Var v) =
+expressionSvg' (Var v) =
   ((baseSize, baseSize),
    \(x, y) ->
        let viewBox = T.unwords [T.pack . show $ x
@@ -94,7 +132,7 @@ expressionSvg (Var v) =
        in do (e, _) <- elAttr' "g" ("viewBox" =: viewBox ) $ el "text" (text $ T.pack $ v:[])
              return $ domEvent Click e)
 
-expressionSvg (Call []) =
+expressionSvg' (Call []) =
   ((baseSize, baseSize),
    \(x, y) ->
        let viewBox = T.unwords [T.pack . show $ x
@@ -104,8 +142,8 @@ expressionSvg (Call []) =
    in do (e, _) <- elAttr' "g" ("viewBox" =: viewBox ) $ blank
          return $ domEvent Click e)
 
-expressionSvg (Cross e) =
-  let ((sw, sh), subExpressionBuilder) = expressionSvg e
+expressionSvg' (Cross e) =
+  let ((sw, sh), subExpressionBuilder) = expressionSvg' e
       h = sh + 5
       w = sw + 5
    in ((w, h),
@@ -119,8 +157,8 @@ expressionSvg (Cross e) =
                                                          (subExpressionBuilder (x, y))
                          return $ domEvent Click e')
 
-expressionSvg (Call es) =
-   let builders = map expressionSvg es
+expressionSvg' (Call es) =
+   let builders = map expressionSvg' es
        w = foldr (\((w, _), _) acc ->  acc + w) 5 builders
        h = foldr (\((_, h), _) acc ->  max acc h) 5 builders
     in ((w, h),
