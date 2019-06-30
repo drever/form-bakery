@@ -2,6 +2,7 @@
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE RecursiveDo #-}
 
 module Markup (expression
              , parseError
@@ -88,7 +89,7 @@ type Size = (Int, Int)
 
 baseSize = 20
 
-expressionSVG :: forall t m. (MonadWidget t m) => m ()
+expressionSVG :: (DomBuilder t m, PostBuild t m, MonadHold t m, MonadFix m)  => m (Event t ())
 expressionSVG = --snd . (expression' (0, 0))
      -- let ((w', h'), b) = expressionSvg e
      let w' = 100
@@ -105,8 +106,6 @@ expressionSVG = --snd . (expression' (0, 0))
                     (S.Height 50.0)
                     Nothing
                     Nothing
-         -- shiftRect :: Dynamic t SVG_Rect -> Dynamic t SVG_Rect
-         -- shiftRect = fmap (S.svg_rect_pos_x . S._PosX +~ 70.0)
 
          attrs = mempty
              & at "id" ?~ "svg1"
@@ -115,7 +114,8 @@ expressionSVG = --snd . (expression' (0, 0))
             _ <- S.svg_ svgProps $ do
                       S.svgBasicDyn S.Rectangle (mappend attrs . S.makeRectProps) (pure dRect1) (pure mempty)
                      --b (0, 0)
-            pure ()
+            pure () >> (return never)
+
 lineAttr :: Int -> Int -> Int -> Int -> T.Text -> Map.Map T.Text T.Text
 lineAttr x1 y1 x2 y2 stroke = Map.fromList [("x1", T.pack . show $ x1), ("y1", T.pack . show $ y1), ("x2", T.pack . show $ x2), ("y2", T.pack . show $ y2), ("stroke", stroke)]
 

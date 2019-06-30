@@ -17,6 +17,9 @@ main = mainWidgetWithCss css  $ do
   el "div" parseAndRenderWidget
   el "hr" (text "")
   display =<< count =<< (either parseError expression . parseExpr $ "<<>><>")
+  case parseExpr "<<><>>" of
+      Right x -> return expressionSVG x
+      Left err -> (el "p" $ text "error") >> return never
   return ()
 
    where css = $(embedFile "css/mark.css")
