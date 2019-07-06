@@ -82,8 +82,8 @@ table, th, td {
   height: 20px;
   width: 20px;
 
-  font-family: 'Raleway', sans-serif;
-  font-size: 7px;
+  /* font-family: 'Raleway', sans-serif; */
+  /* font-size: 7px; */
 
   /* background-color: aqua; */
 }
