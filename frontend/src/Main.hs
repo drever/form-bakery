@@ -34,7 +34,6 @@ main = mainWidgetWithCss css  $ do
   -- --     Right e -> expressionSVG e
   --     -- Left err -> (el "p" $ text "error") >> return never
   return ()
-
    where css = $(embedFile "css/mark.css")
 
 heading :: DomBuilder t m => m ()
