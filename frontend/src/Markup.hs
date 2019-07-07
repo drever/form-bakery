@@ -21,8 +21,11 @@ import Reflex.Dom.Widget.SVG.Types (SVG_Rect)
 import qualified Reflex.Dom.Widget.SVG.Types as S
 import Control.Lens ((^?), (+~), (?~), (#), from, at)
 import Reflex.Dom.Core (MonadWidget, (=:))
+import qualified Data.List.NonEmpty as NE
 
-parseError err = (text . T.pack . show $ err) >> (return never)
+parseError :: (DomBuilder t m, Show a) => a -> m [Event t b]
+parseError err = (text . T.pack . show $ err) >> (return [never])
+
 
 truthTable :: DomBuilder t m
       => Expr
@@ -41,29 +44,34 @@ truthTable e = elClass "div" "truthtable" $ do
 
 expression :: DomBuilder t m
       => Expr
-      -> m (Event t Position)
+      -> m [Event t Position]
 expression = snd . (expression' (0, 0))
     where expression' :: DomBuilder t m
                          => (Int, Int)
                          -> Expr
-                         -> ((Int, Int), m (Event t Position))
-          expression' p (Call []) = (p, divButton "unmarked" p blank)
-          expression' p (Var e) = (p, divButton "var" p (text (T.pack $ e:[])))
+                         -> ((Int, Int), m [Event t Position])
+          expression' p (Call []) = (p, divButton "unmarked" p (blank >> return [never]))
+          expression' p (Var e) = (p, divButton "var" p (text (T.pack $ e:[]) >> return [never]))
           expression' p@(i, _) (Call es) =
-                let subExprs = (mapM_ ((\(j', e) -> snd $ expression' (i, j') e)) (zip [1..] es))
-                in (p, divButton "call" p subExprs)
-          expression' p@(i, j) (Cross e) = (p, divButton "cross" p (snd $ expression' (i + 1, j) e))
+                let subExprs = mapM (\(j', e) -> snd $ expression' (i, j') e)
+                                     (zip [1..] es)
+                 in (p, divButton "call" p (join <$> subExprs))
+          expression' p@(i, j) (Cross e) = (p, do let subExpr = snd $ expression' (i + 1, j) e
+                                                      b = divButton "cross" p subExpr
+                                                  b)
 
           divButton :: DomBuilder t m
                     => T.Text
                     -> Position
-                    -> m a
-                    -> m (Event t Position)
+                    -> m [Event t Position]
+                    -> m [Event t Position]
           divButton c cs e = do
                     let attrs = mempty & at "class" ?~ c
                                   & at "data-depth" ?~ (T.pack . show $ cs)
-                    (t, _) <- elAttr' "div" attrs e
-                    return $ const cs <$> domEvent Click t
+                                  & at "z-index" ?~ (T.pack . show . (*(-1)) . fst $ cs)
+                    (t, ev) <- elAttr' "div" attrs e
+                    let de = const cs <$> domEvent Click t
+                    return $ de:ev
 
 -- SVG
 --

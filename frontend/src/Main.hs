@@ -17,9 +17,13 @@ main = mainWidgetWithCss css  $ do
   el "p" (parseAndRenderWidget "<a>b")
 
   el "hr" (text "")
-  display =<< holdDyn (0, 0)
+  display =<< holdDyn "bla" --(42, 0)
           . traceEvent "Position"
-          =<< (either parseError expression . parseExpr $ "<<>><>")
+          -- . leftmost
+          . mergeWith (++)
+          . (fmap (fmap show))
+          -- . mergeWith (\e1@(d1, _) e2@(d2, _) -> if d1 >= d2 then e1 else e2)
+          =<< (either parseError expression . parseExpr $ "<<a>><>")
   -- case parseExpr "<<><>>" of
   --     Right e -> expressionSVG e
       -- Left err -> (el "p" $ text "error") >> return never
@@ -40,7 +44,6 @@ parseAndRenderWidget e = do
           dyn $ either parseError expression
                . parseExpr
                <$> _inputElement_value t
-
           dyn $ either (const (return never)) truthTable
               . parseExpr
               <$> _inputElement_value t
