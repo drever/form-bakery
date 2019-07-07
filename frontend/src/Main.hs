@@ -14,12 +14,15 @@ import Markup
 main :: IO ()
 main = mainWidgetWithCss css  $ do
   heading
-  el "div" parseAndRenderWidget
+  el "p" (parseAndRenderWidget "<a>b")
+
   el "hr" (text "")
-  display =<< count =<< (either parseError expression . parseExpr $ "<<>><>")
-  case parseExpr "<<><>>" of
-      Right x -> return expressionSVG x
-      Left err -> (el "p" $ text "error") >> return never
+  display =<< holdDyn (0, 0)
+          . traceEvent "Position"
+          =<< (either parseError expression . parseExpr $ "<<>><>")
+  -- case parseExpr "<<><>>" of
+  --     Right e -> expressionSVG e
+      -- Left err -> (el "p" $ text "error") >> return never
   return ()
 
    where css = $(embedFile "css/mark.css")
@@ -29,10 +32,10 @@ heading = do
   el "h1" $ text "The Form Bakery"
   el "p" $ text "An invitation to the Laws of Form"
 
-parseAndRenderWidget :: (DomBuilder t m, PostBuild t m) => m ()
-parseAndRenderWidget = do
+parseAndRenderWidget :: (DomBuilder t m, PostBuild t m) => T.Text -> m ()
+parseAndRenderWidget e = do
       t <-  inputElement $ def
-           & inputElementConfig_initialValue .~ "<a>b"
+           & inputElementConfig_initialValue .~ e
       elClass "div" "output" $ do
           dyn $ either parseError expression
                . parseExpr

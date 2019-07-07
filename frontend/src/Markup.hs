@@ -41,46 +41,29 @@ truthTable e = elClass "div" "truthtable" $ do
 
 expression :: DomBuilder t m
       => Expr
-      -> m (Event t ())
+      -> m (Event t Position)
 expression = snd . (expression' (0, 0))
+    where expression' :: DomBuilder t m
+                         => (Int, Int)
+                         -> Expr
+                         -> ((Int, Int), m (Event t Position))
+          expression' p (Call []) = (p, divButton "unmarked" p blank)
+          expression' p (Var e) = (p, divButton "var" p (text (T.pack $ e:[])))
+          expression' p@(i, _) (Call es) =
+                let subExprs = (mapM_ ((\(j', e) -> snd $ expression' (i, j') e)) (zip [1..] es))
+                in (p, divButton "call" p subExprs)
+          expression' p@(i, j) (Cross e) = (p, divButton "cross" p (snd $ expression' (i + 1, j) e))
 
-
-expression' :: DomBuilder t m
-          => (Int, Int)
-          -> Expr
-          -> ((Int, Int), m (Event t ()))
-expression' (i, j) (Call []) = (
-            (i, j)
-          , divButton
-                "unmarked" (T.pack $ show (i, j))
-                (text ""))
-
-expression' (i, j) (Var e) = (
-              (i, j)
-           , divButton
-                "var" (T.pack $ show (i, j))
-                (text (T.pack $ e:[])))
-
-expression' (i, j) (Call es) = (
-            (i, j)
-          , divButton
-                "call" (T.pack $ show (i, j))
-                (mapM_ ((\(j', e) -> snd $ expression' (i, j') e)) (zip [1..] es)))
-
-expression' (i, j) (Cross e) = (
-            (i, j)
-          , divButton
-                "cross" (T.pack $ show (i, j))
-                (snd $ expression' (i + 1, j) e))
-
-divButton :: DomBuilder t m
-          => T.Text
-          -> T.Text
-          -> m a
-          -> m (Event t ())
-divButton c cs e = do
-          (e', _) <- elClass' "div" c e
-          return $ domEvent Click e'
+          divButton :: DomBuilder t m
+                    => T.Text
+                    -> Position
+                    -> m a
+                    -> m (Event t Position)
+          divButton c cs e = do
+                    let attrs = mempty & at "class" ?~ c
+                                  & at "data-depth" ?~ (T.pack . show $ cs)
+                    (t, _) <- elAttr' "div" attrs e
+                    return $ const cs <$> domEvent Click t
 
 -- SVG
 --
@@ -89,8 +72,10 @@ type Size = (Int, Int)
 
 baseSize = 20
 
-expressionSVG :: (DomBuilder t m, PostBuild t m, MonadHold t m, MonadFix m)  => m (Event t ())
-expressionSVG = --snd . (expression' (0, 0))
+expressionSVG :: (DomBuilder t m, PostBuild t m, MonadHold t m, MonadFix m)
+                 => Expr
+                 -> m (Event t ())
+expressionSVG e = --snd . (expression' (0, 0))
      -- let ((w', h'), b) = expressionSvg e
      let w' = 100
          h' = 100
@@ -113,11 +98,15 @@ expressionSVG = --snd . (expression' (0, 0))
       in do
             _ <- S.svg_ svgProps $ do
                       S.svgBasicDyn S.Rectangle (mappend attrs . S.makeRectProps) (pure dRect1) (pure mempty)
+                      -- S.svgBasicDyn (expressionSvg'' e) (mappend attrs . S.makeRectProps) (pure dRect1) (pure mempty)
                      --b (0, 0)
             pure () >> (return never)
 
 lineAttr :: Int -> Int -> Int -> Int -> T.Text -> Map.Map T.Text T.Text
 lineAttr x1 y1 x2 y2 stroke = Map.fromList [("x1", T.pack . show $ x1), ("y1", T.pack . show $ y1), ("x2", T.pack . show $ x2), ("y2", T.pack . show $ y2), ("stroke", stroke)]
+
+expressionSvg'' :: Expr -> S.BasicSVG
+expressionSvg'' = undefined
 
 expressionSvg' :: DomBuilder t m
           => Expr
