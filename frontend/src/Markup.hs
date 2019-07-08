@@ -75,7 +75,6 @@ expression = snd . (expression' (0, 0))
 
 -- SVG
 --
-type Position = (Int, Int)
 type Size = (Int, Int)
 
 baseSize = 20

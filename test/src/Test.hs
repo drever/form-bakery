@@ -5,7 +5,12 @@ import Common
 import qualified Data.Map as Map
 
 main :: IO ()
-main = hspec $ do
+main = hspec $ sequence_ [
+            parsing
+          , evaluation
+          , manipulation]
+
+parsing =
   describe "Parsing" $ do
     mapM_ (\c -> it ("show . read is identity for: " ++ c) $ do
            (let pe = read c :: Expr
@@ -20,6 +25,7 @@ main = hspec $ do
     it "show . read for arbitrary expressions id identity" $ do
         property $ \e -> let s = show (e :: Expr)
                           in (show . (read :: String -> Expr) $ s) == (s :: String)
+evaluation =
   describe "Evaluation" $ do
      describe "and" $ do
          checkTable "<<a><b>>" $ truthTable (&&)
@@ -27,6 +33,23 @@ main = hspec $ do
          checkTable "ab" $ truthTable (||)
      describe "implication" $ do
          checkTable "<a>b" $ truthTable (\a b -> not a || b)
+
+manipulation =
+   describe "Manipulation" $ do
+      it "inserts a marks" $ do
+          insertMarkAt (read "") (0, 0)     `shouldBe` (read "<>")
+      it "inserts a marks" $ do
+          insertMarkAt (read "<>") (0, 0)   `shouldBe` (read "<><>")
+      it "inserts a marks" $ do
+          insertMarkAt (read "<>") (0, 1)   `shouldBe` (read "<><>")
+      it "inserts a marks" $ do
+          insertMarkAt (read "<><>") (0, 0) `shouldBe` (read "<><><>")
+      it "inserts a marks" $ do
+          insertMarkAt (read "<><>") (0, 1) `shouldBe` (read "<><><>")
+      it "inserts a marks" $ do
+          insertMarkAt (read "<>") (1, 0)   `shouldBe` (read "<<>>")
+      it "inserts a marks" $ do
+          insertMarkAt (read "<><>") (1, 1) `shouldBe` (read "<><<>>")
 
 
 checkTable exp t = mapM_ (\(a, b, r) ->

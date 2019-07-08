@@ -33,6 +33,7 @@ data Expr =
 instance Hashable Expr where
 
 type Env = Map.Map Char Expr
+type Position = (Int, Int)
 
 instance Show Expr where
   show (Cross e) = intercalate "" ["<", show e, ">"]
@@ -50,6 +51,24 @@ instance Read Expr where
 listValues :: Expr -> [(Env, Expr)]
 listValues e = map (\env -> let r = fromRight undefined $ eval env e
                              in (env, r)) (allEnvs e)
+
+insertMarkAt :: Expr -> Position -> Expr
+insertMarkAt (Call []) (0, 0) = marked
+insertMarkAt (Cross (Call [])) (0, _) = Call [marked, marked]
+insertMarkAt (Call es) (0, j) = Call $
+     foldr (\(e, j') acc ->
+         if j' == j
+            then marked:e:acc
+            else e:acc) [] (zip es [0..])
+insertMarkAt (Cross e) (0, 0) = Cross (Cross e)
+insertMarkAt (Cross e) (i, j) = Cross (insertMarkAt e (i - 1, j))
+insertMarkAt (Call (es)) (i, j) = Call $
+    map (\(e, j') ->
+        if j' == j
+           then insertMarkAt e (i - 1, j)
+           else e)
+         (zip es [1..])
+
 
 allEnvs :: Expr -> [Env]
 allEnvs e = let getVars (Cross e) = getVars e
