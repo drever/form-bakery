@@ -54,14 +54,13 @@ listValues e = map (\env -> let r = fromRight undefined $ eval env e
 
 insertMarkAt :: Expr -> Position -> Expr
 insertMarkAt (Call []) (0, 0) = marked
-insertMarkAt (Cross (Call [])) (0, _) = Call [marked, marked]
-insertMarkAt (Call es) (0, j) = Call $
-     foldr (\(e, j') acc ->
-         if j' == j
+insertMarkAt (Call es) (i, 0) = Call $
+     foldr (\(e, i') acc ->
+         if i' == i
             then marked:e:acc
             else e:acc) [] (zip es [0..])
-insertMarkAt (Cross e) (0, 0) = Cross (Cross e)
-insertMarkAt (Cross e) (i, j) = Cross (insertMarkAt e (i - 1, j))
+insertMarkAt (Cross e) (_, 0) = Call [marked, Cross e]
+insertMarkAt (Cross e) (i, j) = Cross (insertMarkAt e (i, j))
 insertMarkAt (Call (es)) (i, j) = Call $
     map (\(e, j') ->
         if j' == j

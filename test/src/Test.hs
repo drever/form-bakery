@@ -36,20 +36,16 @@ evaluation =
 
 manipulation =
    describe "Manipulation" $ do
-      it "inserts a marks" $ do
-          insertMarkAt (read "") (0, 0)     `shouldBe` (read "<>")
-      it "inserts a marks" $ do
-          insertMarkAt (read "<>") (0, 0)   `shouldBe` (read "<><>")
-      it "inserts a marks" $ do
-          insertMarkAt (read "<>") (0, 1)   `shouldBe` (read "<><>")
-      it "inserts a marks" $ do
-          insertMarkAt (read "<><>") (0, 0) `shouldBe` (read "<><><>")
-      it "inserts a marks" $ do
-          insertMarkAt (read "<><>") (0, 1) `shouldBe` (read "<><><>")
-      it "inserts a marks" $ do
-          insertMarkAt (read "<>") (1, 0)   `shouldBe` (read "<<>>")
-      it "inserts a marks" $ do
-          insertMarkAt (read "<><>") (1, 1) `shouldBe` (read "<><<>>")
+      let check i p r = do
+              it (unwords ["insertMarkAt", i, show p, "should be", r]) $ do
+                  insertMarkAt (read i) p `shouldBe` (read r)
+       in do check "" (0, 0) "<>"
+             check "<>" (0, 0) "<><>"
+             check "<>" (1, 0) "<><>"
+             check "<><>" (0, 0) "<><><>"
+             check "<><>" (1, 0) "<><><>"
+             check "<>" (0, 1) "<<>>"
+             check "<><>" (1, 1) "<><<>>"
 
 
 checkTable exp t = mapM_ (\(a, b, r) ->

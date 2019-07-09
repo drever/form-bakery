@@ -52,11 +52,11 @@ expression = snd . (expression' (0, 0))
                          -> ((Int, Int), m [Event t Position])
           expression' p (Call []) = (p, divButton "unmarked" p (blank >> return [never]))
           expression' p (Var e) = (p, divButton "var" p (text (T.pack $ e:[]) >> return [never]))
-          expression' p@(i, _) (Call es) =
-                let subExprs = mapM (\(j', e) -> snd $ expression' (i, j') e)
-                                     (zip [1..] es)
+          expression' p@(_, j) (Call es) =
+                let subExprs = mapM (\(i', e) -> snd $ expression' (i', j) e)
+                                     (zip [0..] es)
                  in (p, divButton "call" p (join <$> subExprs))
-          expression' p@(i, j) (Cross e) = (p, do let subExpr = snd $ expression' (i + 1, j) e
+          expression' p@(i, j) (Cross e) = (p, do let subExpr = snd $ expression' (i, j + 1) e
                                                       b = divButton "cross" p subExpr
                                                   b)
 
@@ -68,7 +68,7 @@ expression = snd . (expression' (0, 0))
           divButton c cs e = do
                     let attrs = mempty & at "class" ?~ c
                                   & at "data-depth" ?~ (T.pack . show $ cs)
-                                  & at "z-index" ?~ (T.pack . show . (*(-1)) . fst $ cs)
+                                  & at "z-index" ?~ (T.pack . show . (*(-1)) . snd $ cs)
                     (t, ev) <- elAttr' "div" attrs e
                     let de = const cs <$> domEvent Click t
                     return $ de:ev
