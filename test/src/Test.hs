@@ -46,6 +46,7 @@ manipulation =
              check "<><>" (1, 0) "<><><>"
              check "<>" (0, 1) "<<>>"
              check "<><>" (1, 1) "<><<>>"
+             check "<><b>" (1, 1) "<><<b>>"
 
 
 checkTable exp t = mapM_ (\(a, b, r) ->
