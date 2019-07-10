@@ -44,6 +44,7 @@ manipulation =
                   insertMarkAt (read e) (T.pack p) `shouldBe` (read r)
        in do check "" "B" "<>"
              check "<>" "CB" "<<>>"
+             check "<>" "0CB" "<<>>"
              check "<<>>" "CCB" "<<<>>>"
              check "<><><>" "0CB" "<<>><><>"
              check "<><><>" "1CB" "<><<>><>"

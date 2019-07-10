@@ -57,6 +57,7 @@ listValues e = map (\env -> let r = fromRight undefined $ eval env e
 insertMarkAt :: Expr -> Position -> Expr
 insertMarkAt e "B" = Cross e
 insertMarkAt um@(Call []) "" = Cross um
+insertMarkAt m@(Cross _) (T.uncons -> Just ('0', rs)) = insertMarkAt m rs
 insertMarkAt (Cross e) (T.uncons -> Just ('C', rs)) = Cross $ insertMarkAt e rs
 insertMarkAt (Call es) (T.uncons -> Just (r, rs)) =
     let i = read (r:[])
