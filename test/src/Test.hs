@@ -1,8 +1,11 @@
+{-# LANGUAGE OverloadedStrings #-}
+
 import Test.Hspec
 import Test.QuickCheck
 
 import Common
 import qualified Data.Map as Map
+import qualified Data.Text as T
 
 main :: IO ()
 main = hspec $ sequence_ [
@@ -36,18 +39,17 @@ evaluation =
 
 manipulation =
    describe "Manipulation" $ do
-      let check i p r = do
-              it (unwords ["insertMarkAt", i, show p, "should be", r]) $ do
-                  insertMarkAt (read i) p `shouldBe` (read r)
-       in do check "" (0, 0) "<>"
-             check "<>" (0, 0) "<><>"
-             check "<>" (1, 0) "<><>"
-             check "<><>" (0, 0) "<><><>"
-             check "<><>" (1, 0) "<><><>"
-             check "<>" (0, 1) "<<>>"
-             check "<><>" (1, 1) "<><<>>"
-             check "<><b>" (1, 1) "<><<b>>"
-
+      let check e p r = do
+              it (unwords ["insertMarkAt", e, p, "should be", r]) $ do
+                  insertMarkAt (read e) (T.pack p) `shouldBe` (read r)
+       in do check "" "B" "<>"
+             check "<>" "CB" "<<>>"
+             check "<<>>" "CCB" "<<<>>>"
+             check "<><><>" "0CB" "<<>><><>"
+             check "<><><>" "1CB" "<><<>><>"
+             check "<><><>" "2CB" "<><><<>>"
+             check "<<><><>>" "C2CB" "<<><><<>>>"
+             check "<<><><b>>" "C2CB" "<<><><<b>>>"
 
 checkTable exp t = mapM_ (\(a, b, r) ->
          it (unwords [exp, ", a = ", show a, ", b = ", show b, " => r = ", show r]) $ do

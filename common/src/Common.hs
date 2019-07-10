@@ -1,4 +1,6 @@
 {-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE ViewPatterns #-}
 
 module Common where
 
@@ -33,7 +35,7 @@ data Expr =
 instance Hashable Expr where
 
 type Env = Map.Map Char Expr
-type Position = (Int, Int)
+type Position = T.Text
 
 instance Show Expr where
   show (Cross e) = intercalate "" ["<", show e, ">"]
@@ -53,22 +55,15 @@ listValues e = map (\env -> let r = fromRight undefined $ eval env e
                              in (env, r)) (allEnvs e)
 
 insertMarkAt :: Expr -> Position -> Expr
-insertMarkAt (Call []) (0, 0) = marked
-insertMarkAt v@(Var _) (0, 0) = Cross v
-insertMarkAt (Call es) (i, 0) = Call $
-     foldr (\(e, i') acc ->
-         if i' == i
-            then marked:e:acc
-            else e:acc) [] (zip es [0..])
-insertMarkAt (Cross e) (_, 0) = Call [marked, Cross e]
-insertMarkAt (Cross e) (i, j) = Cross (insertMarkAt e (i, j - 1))
-insertMarkAt (Call es) (i, j) = Call $
-    map (\(e, j') ->
-        if j' == j
-           then insertMarkAt e (i - 1, j)
-           else e)
-         (zip es [0..])
-
+insertMarkAt e "B" = Cross e
+insertMarkAt um@(Call []) "" = Cross um
+insertMarkAt (Cross e) (T.uncons -> Just ('C', rs)) = Cross $ insertMarkAt e rs
+insertMarkAt (Call es) (T.uncons -> Just (r, rs)) =
+    let i = read (r:[])
+    in Call $ foldr (\(j, e) acc ->
+           if i == j
+                then (insertMarkAt e rs):acc
+                else e:acc) [] (zip [0..] es)
 
 allEnvs :: Expr -> [Env]
 allEnvs e = let getVars (Cross e) = getVars e

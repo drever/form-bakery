@@ -26,7 +26,6 @@ import qualified Data.List.NonEmpty as NE
 parseError :: (DomBuilder t m, Show a) => a -> m [Event t b]
 parseError err = (text . T.pack . show $ err) >> (return [never])
 
-
 truthTable :: DomBuilder t m
       => Expr
       -> m (Event t ())
@@ -45,30 +44,32 @@ truthTable e = elClass "div" "truthtable" $ do
 expression :: DomBuilder t m
       => Expr
       -> m [Event t Position]
-expression = snd . (expression' (0, 0))
+expression = snd . (expression' "0")
     where expression' :: DomBuilder t m
-                         => (Int, Int)
+                         => T.Text
                          -> Expr
-                         -> ((Int, Int), m [Event t Position])
-          expression' p (Call []) = (p, divButton "unmarked" p (blank >> return [never]))
-          expression' p (Var e) = (p, divButton "var" p (text (T.pack $ e:[]) >> return [never]))
-          expression' p@(_, j) (Call es) =
-                let subExprs = mapM (\(i', e) -> snd $ expression' (i', j) e)
+                         -> (T.Text, m [Event t Position])
+          expression' p (Call []) = let p' = p <> "B"
+                                     in (p', divButton "unmarked" p' (blank >> return [never]))
+          expression' p (Var e) = let p' = p <> "B"
+                                   in (p', divButton "var" p' (text (T.pack $ e:[]) >> return [never]))
+          expression' p (Call es) =
+                let subExprs = mapM (\(i, e) -> snd $ expression' (p <> (T.pack . show $ i)) e)
                                      (zip [0..] es)
                  in (p, divButton "call" p (join <$> subExprs))
-          expression' p@(i, j) (Cross e) = (p, do let subExpr = snd $ expression' (i, j + 1) e
-                                                      b = divButton "cross" p subExpr
-                                                  b)
+          expression' p (Cross e) = let p' = (p <> "C")
+                                     in (p', do let subExpr = snd $ expression' p' e
+                                                    b = divButton "cross" p subExpr
+                                                b)
 
           divButton :: DomBuilder t m
                     => T.Text
-                    -> Position
+                    -> T.Text
                     -> m [Event t Position]
                     -> m [Event t Position]
           divButton c cs e = do
                     let attrs = mempty & at "class" ?~ c
-                                  & at "data-depth" ?~ (T.pack . show $ cs)
-                                  & at "z-index" ?~ (T.pack . show . (*(-1)) . snd $ cs)
+                                  & at "data-depth" ?~ cs
                     (t, ev) <- elAttr' "div" attrs e
                     let de = const cs <$> domEvent Click t
                     return $ de:ev
@@ -115,61 +116,61 @@ lineAttr x1 y1 x2 y2 stroke = Map.fromList [("x1", T.pack . show $ x1), ("y1", T
 expressionSvg'' :: Expr -> S.BasicSVG
 expressionSvg'' = undefined
 
-expressionSvg' :: DomBuilder t m
-          => Expr
-          -> (Size, Position -> m (Event t ()))
-expressionSvg' (Var v) =
-  ((baseSize, baseSize),
-   \(x, y) ->
-       let viewBox = T.unwords [T.pack . show $ x
-                              , T.pack . show $ y
-                              , T.pack . show $ baseSize
-                              , T.pack . show $ baseSize]
-       in do (e, _) <- elAttr' "g" ("viewBox" =: viewBox ) $ el "text" (text $ T.pack $ v:[])
-             return $ domEvent Click e)
+-- expressionSvg' :: DomBuilder t m
+--           => Expr
+--           -> (Size, Position -> m (Event t ()))
+-- expressionSvg' (Var v) =
+--   ((baseSize, baseSize),
+--    \(x, y) ->
+--        let viewBox = T.unwords [T.pack . show $ x
+--                               , T.pack . show $ y
+--                               , T.pack . show $ baseSize
+--                               , T.pack . show $ baseSize]
+--        in do (e, _) <- elAttr' "g" ("viewBox" =: viewBox ) $ el "text" (text $ T.pack $ v:[])
+--              return $ domEvent Click e)
 
-expressionSvg' (Call []) =
-  ((baseSize, baseSize),
-   \(x, y) ->
-       let viewBox = T.unwords [T.pack . show $ x
-                              , T.pack . show $ y
-                              , T.pack . show $ baseSize
-                              , T.pack . show $ baseSize]
-   in do (e, _) <- elAttr' "g" ("viewBox" =: viewBox ) $ blank
-         return $ domEvent Click e)
+-- expressionSvg' (Call []) =
+--   ((baseSize, baseSize),
+--    \(x, y) ->
+--        let viewBox = T.unwords [T.pack . show $ x
+--                               , T.pack . show $ y
+--                               , T.pack . show $ baseSize
+--                               , T.pack . show $ baseSize]
+--    in do (e, _) <- elAttr' "g" ("viewBox" =: viewBox ) $ blank
+--          return $ domEvent Click e)
 
-expressionSvg' (Cross e) =
-  let ((sw, sh), subExpressionBuilder) = expressionSvg' e
-      h = sh + 5
-      w = sw + 5
-   in ((w, h),
-       \(x, y) -> let viewBox = T.unwords [T.pack . show $ x
-                                         , T.pack . show $ y
-                                         , T.pack . show $ w
-                                         , T.pack . show $ h]
-                   in do (e', _) <- elAttr' "g" ("viewBox" =: viewBox) $ do
-                                                         elAttr "line" (lineAttr x y (x + sw) y "black") blank
-                                                         elAttr "line" (lineAttr (x + sw) y (x + sw) (y + sh) "black") blank
-                                                         (subExpressionBuilder (x, y))
-                         return $ domEvent Click e')
+-- expressionSvg' (Cross e) =
+--   let ((sw, sh), subExpressionBuilder) = expressionSvg' e
+--       h = sh + 5
+--       w = sw + 5
+--    in ((w, h),
+--        \(x, y) -> let viewBox = T.unwords [T.pack . show $ x
+--                                          , T.pack . show $ y
+--                                          , T.pack . show $ w
+--                                          , T.pack . show $ h]
+--                    in do (e', _) <- elAttr' "g" ("viewBox" =: viewBox) $ do
+--                                                          elAttr "line" (lineAttr x y (x + sw) y "black") blank
+--                                                          elAttr "line" (lineAttr (x + sw) y (x + sw) (y + sh) "black") blank
+--                                                          (subExpressionBuilder (x, y))
+--                          return $ domEvent Click e')
 
-expressionSvg' (Call es) =
-   let builders = map expressionSvg' es
-       w = foldr (\((w, _), _) acc ->  acc + w) 5 builders
-       h = foldr (\((_, h), _) acc ->  max acc h) 5 builders
-    in ((w, h),
-       \p@(x, y) -> do let viewBox = T.unwords [T.pack . show $ x
-                                               , T.pack . show $ y
-                                               , T.pack . show $ w
-                                               , T.pack . show $ h]
-                       (e', _) <- elAttr' "g" ("viewBox" =: viewBox) $ do
-                                          blarec p builders
-                       return $ domEvent Click e')
+-- -- expressionSvg' (Call es) =
+-- --    let builders = map expressionSvg' es
+-- --        w = foldr (\((w, _), _) acc ->  acc + w) 5 builders
+-- --        h = foldr (\((_, h), _) acc ->  max acc h) 5 builders
+-- --     in ((w, h),
+-- --        \p -> do let viewBox = T.unwords [T.pack . show $ x
+-- --                                                , T.pack . show $ y
+-- --                                                , T.pack . show $ w
+-- --                                                , T.pack . show $ h]
+-- --                        (e', _) <- elAttr' "g" ("viewBox" =: viewBox) $ do
+-- --                                           blarec p builders
+-- --                        return $ domEvent Click e')
 
 
-blarec :: DomBuilder t m => Position -> [(Size, Position -> m (Event t ()))] -> m (Event t ())
-blarec (x, y) [] = blank >> (return never)
-blarec (x, y) (((h, w), e):es) = do e (x, y)
-                                    blarec (x + w, y) es
+-- -- blarec :: DomBuilder t m => Position -> [(Size, Position -> m (Event t ()))] -> m (Event t ())
+-- -- blarec (x, y) [] = blank >> (return never)
+-- -- blarec (x, y) (((h, w), e):es) = do e (x, y)
+-- --                                     blarec (x + w, y) es
 
 
