@@ -7,7 +7,7 @@
 module Markup (expression
              , parseError
              , expressionSVG
-             , truthTable) where
+             {-, truthTable-}) where
 
 import Control.Applicative
 import Common
@@ -19,60 +19,110 @@ import qualified Data.Text as T
 import qualified Reflex.Dom.Widget.SVG as S
 import Reflex.Dom.Widget.SVG.Types (SVG_Rect)
 import qualified Reflex.Dom.Widget.SVG.Types as S
-import Control.Lens ((^?), (+~), (?~), (#), from, at)
+import Control.Lens ((%~), (^?), (+~), (?~), (#), from, at)
 import Reflex.Dom.Core (MonadWidget, (=:))
 import qualified Data.List.NonEmpty as NE
+import Data.Proxy (Proxy (..))
 
-parseError :: (DomBuilder t m, Show a) => a -> m [Event t b]
-parseError err = (text . T.pack . show $ err) >> (return [never])
+parseError :: (DomBuilder t m, Show a) => a -> m (Event t b)
+parseError err = (text . T.pack . show $ err) >> (return never)
 
-truthTable :: DomBuilder t m
-      => Expr
-      -> m (Event t ())
-truthTable e = elClass "div" "truthtable" $ do
-                case listValues e of
-                 [] -> (text "") >>  return never
-                 vs -> do el "table" $ do
-                             el "tr" $ do let ns = map fst . Map.toList . fst . head $ vs :: [Char]
-                                          mapM_ (\v -> el "th" (text (T.pack . (:[]) $ v))) ns
-                                          el "th" (expression e)
-                             mapM_ (\vs'' -> el "tr" $ do let vs' = map snd . Map.toList . fst $ vs'' :: [Expr]
-                                                          mapM_ (\v -> el "td" (expression $ v)) (vs' :: [Expr])
-                                                          el "td" (expression . snd $ vs'')) (vs :: [(Env, Expr)])
-                          return never
+-- truthTable :: (DomBuilder t m, PostBuild t m)
+--       => Expr
+--       -> m (Event t ())
+-- truthTable e = elClass "div" "truthtable" $ do
+--                 case listValues e of
+--                  [] -> (text "") >>  return never
+--                  vs -> do el "table" $ do
+--                              el "tr" $ do let ns = map fst . Map.toList . fst . head $ vs :: [Char]
+--                                           mapM_ (\v -> el "th" (text (T.pack . (:[]) $ v))) ns
+--                                           el "th" (expression e)
+--                              mapM_ (\vs'' -> el "tr" $ do let vs' = map snd . Map.toList . fst $ vs'' :: [Expr]
+--                                                           mapM_ (\v -> el "td" (expression $ v)) (vs' :: [Expr])
+--                                                           el "td" (expression . snd $ vs'')) (vs :: [(Env, Expr)])
+--                           return never
 
-expression :: DomBuilder t m
-      => Expr
-      -> m [Event t Position]
-expression = snd . (expression' "0")
-    where expression' :: DomBuilder t m
-                         => T.Text
+data ExpressionClass =
+          UnmarkedExpr
+        | VarExpr
+        | CrossExpr
+        | CallExpr
+        deriving (Show)
+
+expression :: (DomBuilder t m, PostBuild t m)
+      => (Dynamic t Expr)
+      -> m (Event t Position)
+expression de = do --be <- expression' "" undefined
+                   --let ev = tagPromptlyDyn de be
+                   postBuild <- getPostBuild
+
+                   (t, _) <- elAttr' "div" def $
+                               textNode $ def -- (def :: TextNodeConfig t)
+                            & textNodeConfig_setContents .~ leftmost [
+                                (updated ((T.pack . show) <$> de))
+                               , tag (current ((T.pack . show) <$> de)) postBuild
+                                  ]
+
+                   notReadyUntil postBuild
+
+                   return $ const "B" <$> domEvent Click t
+
+    where expression' :: (DomBuilder t m, PostBuild t m)
+                         => Position
                          -> Expr
-                         -> (T.Text, m [Event t Position])
-          expression' p (Call []) = let p' = p <> "B"
-                                     in (p', divButton "unmarked" p' (blank >> return [never]))
-          expression' p (Var e) = let p' = p <> "B"
-                                   in (p', divButton "var" p' (text (T.pack $ e:[]) >> return [never]))
+                         -> m (Event t Position)
+          expression' p (Call []) = divButton UnmarkedExpr (p <> "B") blank
+          expression' p (Var e) = divButton VarExpr (p <> "B") (text (T.pack $ e:[]))
           expression' p (Call es) =
-                let subExprs = mapM (\(i, e) -> snd $ expression' (p <> (T.pack . show $ i)) e)
-                                     (zip [0..] es)
-                 in (p, divButton "call" p (join <$> subExprs))
-          expression' p (Cross e) = let p' = (p <> "C")
-                                     in (p', do let subExpr = snd $ expression' p' e
-                                                    b = divButton "cross" p subExpr
-                                                b)
+                let subExprs = mapM (\(i, e) -> expression' (p <> (T.pack . show $ i)) e)
+                                    (zip [0..] es)
+                 in divButton CallExpr p subExprs
+          expression' p (Cross e) =
+               let p' = p <> "C"
+                   subExpr = expression' p' e
+                in divButton CrossExpr p' subExpr
 
-          divButton :: DomBuilder t m
-                    => T.Text
-                    -> T.Text
-                    -> m [Event t Position]
-                    -> m [Event t Position]
+          divButton :: (DomBuilder t m, PostBuild t m)
+                    => ExpressionClass
+                    -> Position
+                    -> m a
+                    -> m (Event t Position)
           divButton c cs e = do
-                    let attrs = mempty & at "class" ?~ c
+                    let attrs = mempty & at "class" ?~ (T.pack . show $ c)
                                   & at "data-depth" ?~ cs
-                    (t, ev) <- elAttr' "div" attrs e
-                    let de = const cs <$> domEvent Click t
-                    return $ de:ev
+                    (t, _) <- elAttr' "div" attrs e
+                    -- (t, _) <- elDynAttrWithModifyConfig' (\cfg ->
+                    --                cfg & (initialAttributes .~ Map.mapKeys (AttributeName Nothing) attrs)
+                    --                    & (elementConfig_eventSpec %~ (addEventSpecFlags
+                    --                          (Proxy :: DomBuilderSpace m)
+                    --                          Click
+                    --                          (const stopPropagation)))) "div" (pure attrs) e
+                    -- (t, _) <- element
+                    --              "div"
+                    --              (def & (initialAttributes .~ Map.mapKeys (AttributeName Nothing) attrs)
+                    --                   & (elementConfig_eventSpec %~ (addEventSpecFlags
+                    --                         (Proxy )
+                    --                         Click
+                    --                         (const stopPropagation)))
+                    --                   )
+                    --              e
+                    return $ const cs <$> domEvent Click t
+
+elDynAttrWithModifyConfig'
+  :: (DomBuilder t m, PostBuild t m)
+  => (ElementConfig EventResult t (DomBuilderSpace m) -> ElementConfig EventResult t (DomBuilderSpace m))
+  -> T.Text
+  -> Dynamic t (Map.Map T.Text T.Text)
+  -> m a
+  -> m (Element EventResult (DomBuilderSpace m) t, a)
+elDynAttrWithModifyConfig' f elementTag attrs child = do
+  modifyAttrs <- dynamicAttributesToModifyAttributes attrs
+  let cfg = def & modifyAttributes .~ fmapCheap mapKeysToAttributeName modifyAttrs
+                & f
+  result <- element elementTag cfg child
+  postBuild <- getPostBuild
+  notReadyUntil postBuild
+  return result
 
 -- SVG
 --

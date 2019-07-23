@@ -41,7 +41,7 @@ manipulation =
    describe "Manipulation" $ do
       let check e p r = do
               it (unwords ["insertMarkAt", e, p, "should be", r]) $ do
-                  insertMarkAt (read e) (T.pack p) `shouldBe` (read r)
+                  insertMarkAt (T.pack p) (read e) `shouldBe` (read r)
        in do check "" "B" "<>"
              check "<>" "CB" "<<>>"
              check "<>" "0CB" "<<>>"
