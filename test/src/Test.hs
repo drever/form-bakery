@@ -1,11 +1,19 @@
+{-# LANGUAGE OverloadedStrings #-}
+
 import Test.Hspec
 import Test.QuickCheck
 
 import Common
 import qualified Data.Map as Map
+import qualified Data.Text as T
 
 main :: IO ()
-main = hspec $ do
+main = hspec $ sequence_ [
+            parsing
+          , evaluation
+          , manipulation]
+
+parsing =
   describe "Parsing" $ do
     mapM_ (\c -> it ("show . read is identity for: " ++ c) $ do
            (let pe = read c :: Expr
@@ -20,6 +28,7 @@ main = hspec $ do
     it "show . read for arbitrary expressions id identity" $ do
         property $ \e -> let s = show (e :: Expr)
                           in (show . (read :: String -> Expr) $ s) == (s :: String)
+evaluation =
   describe "Evaluation" $ do
      describe "and" $ do
          checkTable "<<a><b>>" $ truthTable (&&)
@@ -28,6 +37,20 @@ main = hspec $ do
      describe "implication" $ do
          checkTable "<a>b" $ truthTable (\a b -> not a || b)
 
+manipulation =
+   describe "Manipulation" $ do
+      let check e p r = do
+              it (unwords ["insertMarkAt", e, p, "should be", r]) $ do
+                  insertMarkAt (read e) (T.pack p) `shouldBe` (read r)
+       in do check "" "B" "<>"
+             check "<>" "CB" "<<>>"
+             check "<>" "0CB" "<<>>"
+             check "<<>>" "CCB" "<<<>>>"
+             check "<><><>" "0CB" "<<>><><>"
+             check "<><><>" "1CB" "<><<>><>"
+             check "<><><>" "2CB" "<><><<>>"
+             check "<<><><>>" "C2CB" "<<><><<>>>"
+             check "<<><><b>>" "C2CB" "<<><><<b>>>"
 
 checkTable exp t = mapM_ (\(a, b, r) ->
          it (unwords [exp, ", a = ", show a, ", b = ", show b, " => r = ", show r]) $ do

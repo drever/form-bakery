@@ -4,12 +4,28 @@ h1 {
   font-size: 15px;
 }
 
+h2 {
+  font-family: 'Raleway', sans-serif;
+  font-size: 13px;
+}
+
+h3 {
+  font-family: 'Raleway', sans-serif;
+  font-size: 11px;
+}
+
 p {
     font-family: 'Raleway', sans-serif;
     font-size: 10px;
 }
+
+th {
+    border-bottom-color: #9E9E9E;
+    border-bottom-width: 2px;
+}
+
 table, th, td {
-  border: 2px solid black;
+  border: 2px solid #9E9E9E;
   border-collapse: collapse;
   padding: 5px;
 }
@@ -88,3 +104,7 @@ table, th, td {
   /* background-color: aqua; */
 }
 
+.consequence {
+  display: inline-flex;
+  min-width: 500px;
+}

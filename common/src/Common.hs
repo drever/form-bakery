@@ -1,4 +1,7 @@
 {-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE ViewPatterns #-}
+{-# LANGUAGE LambdaCase #-}
 
 module Common where
 
@@ -12,6 +15,7 @@ import GHC.Generics
 import Data.List
 import qualified Data.Text as T
 import Control.Monad
+import qualified Data.Set as Set
 
 import Text.ParserCombinators.Parsec
 
@@ -33,6 +37,7 @@ data Expr =
 instance Hashable Expr where
 
 type Env = Map.Map Char Expr
+type Position = T.Text
 
 instance Show Expr where
   show (Cross e) = intercalate "" ["<", show e, ">"]
@@ -48,15 +53,28 @@ instance Read Expr where
                        runParser pes () "" s
 
 listValues :: Expr -> [(Env, Expr)]
-listValues e = map (\env -> let r = fromRight undefined $ eval env e
+listValues e = map (\env -> let (Right r) = eval env e
                              in (env, r)) (allEnvs e)
 
+insertMarkAt :: Expr -> Position -> Expr
+insertMarkAt e "B" = Cross e
+insertMarkAt um@(Call []) "" = Cross um
+insertMarkAt m@(Cross _) (T.uncons -> Just ('0', rs)) = insertMarkAt m rs
+insertMarkAt (Cross e) (T.uncons -> Just ('C', rs)) = Cross $ insertMarkAt e rs
+insertMarkAt (Call es) (T.uncons -> Just (r, rs)) =
+    let i = read (r:[])
+    in Call $ foldr (\(j, e) acc ->
+           if i == j
+                then (insertMarkAt e rs):acc
+                else e:acc) [] (zip [0..] es)
+
 allEnvs :: Expr -> [Env]
-allEnvs e = let getVars (Cross e) = getVars e
+allEnvs e = let getVars :: Expr -> [Char]
+                getVars (Cross e) = getVars e
                 getVars (Call es) = concat $ map getVars es
                 getVars (Var v) = return v
 
-                vs = sort . getVars $ e
+                vs = sort . Set.toList . Set.fromList . getVars $ e
                 bs = replicateM (length vs) [marked, unmarked]
              in map (Map.fromList . (zip vs)) bs
 
@@ -146,8 +164,28 @@ eval d (Cross v) = case eval d v of
                      (Right (Call es)) -> Right unmarked
                      (Right (Cross x)) -> Right x
 
+-- apply :: Expr -> Position -> Expr -> Expr
+-- apply
+
+data Laws = Laws (Expr -> Expr)
+
+laws = Laws $ \case
+     -- I1
+     (Call [(Cross (Call [])), (Cross (Call []))]) ->  marked
+     -- I2
+     (Cross (Cross (Call []))) -> unmarked
+     -- J1
+     -- <<p>p> =
+     e@(Cross (Call [Cross (Var p), Var p'])) ->
+       if  p == p'
+          then unmarked
+          else e
+     -- J2
+     e@(Cross (Call [Cross (Call [Var p, Var r]), Cross (Call [Var q, Var r'])])) ->
+       if r == r'
+          then Call [Cross (Call [Cross (Var p), Cross (Var q)]), Var r]
+          else e
 
 
--- | Appendix 2
--- | The calculus interpreted as logic
+
 
