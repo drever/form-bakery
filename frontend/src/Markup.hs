@@ -4,7 +4,9 @@
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE RecursiveDo #-}
 
-module Markup (expression
+module Markup (parseAndRenderWidget
+             , consequence
+             , expression
              , parseError
              , expressionSVG
              , truthTable) where
@@ -22,6 +24,25 @@ import qualified Reflex.Dom.Widget.SVG.Types as S
 import Control.Lens ((^?), (+~), (?~), (#), from, at)
 import Reflex.Dom.Core (MonadWidget, (=:))
 import qualified Data.List.NonEmpty as NE
+
+parseAndRenderWidget :: (DomBuilder t m, PostBuild t m) => T.Text -> m ()
+parseAndRenderWidget e = elClass "div" "parseAndRender" $ do
+      t <-  inputElement $ def
+           & inputElementConfig_initialValue .~ e
+      elClass "div" "output" $ do
+          dyn $ either parseError expression
+               . parseExpr
+               <$> _inputElement_value t
+          dyn $ either (const (return never)) truthTable
+              . parseExpr
+              <$> _inputElement_value t
+      return ()
+
+consequence :: (DomBuilder t m, PostBuild t m) => T.Text -> T.Text -> m ()
+consequence l r = do
+  elClass "div" "consequence" $ do
+      parseAndRenderWidget l
+      parseAndRenderWidget r
 
 parseError :: (DomBuilder t m, Show a) => a -> m [Event t b]
 parseError err = (text . T.pack . show $ err) >> (return [never])
