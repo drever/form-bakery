@@ -40,7 +40,7 @@ introduction = do
 
   el "h3" $ text "Transposition"
   el "p" $ text "Now there is an expression with three variables and thus there are eight possibilities for the values. There is an equivalent expression which can be found by collecting the `r`. Can you find it?"
-  consequence "<<pr><qr>>" ""
+  consequence "<<pr><qr>>" "<<pr><qr>>"
   el "p" $ text "Spoiler: It's `<<p><q>>r`. Type this expression into the right truth table in order to confirm the equality"
 
 
