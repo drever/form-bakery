@@ -1,27 +1,33 @@
 
 h1 {
   font-family: 'Raleway', sans-serif;
-  font-size: 15px;
+  font-size: 28px;
 }
 
 h2 {
   font-family: 'Raleway', sans-serif;
-  font-size: 13px;
+  font-size: 24px;
 }
 
 h3 {
   font-family: 'Raleway', sans-serif;
-  font-size: 11px;
+  font-size: 20px;
 }
 
 p {
     font-family: 'Raleway', sans-serif;
-    font-size: 10px;
+    font-size: 18px;
 }
 
 th {
     border-bottom-color: #9E9E9E;
     border-bottom-width: 2px;
+}
+
+.errormessage {
+    font-family: 'Raleway', sans-serif;
+    font-size: 18px;
+    color: #F44336;
 }
 
 table, th, td {

@@ -38,6 +38,5 @@ main = mainWidgetWithCss css  $ do
 
 heading :: DomBuilder t m => m ()
 heading = do
-  el "h1" $ text "The Form Bakery"
-  el "p" $ text "An invitation to the Laws of Form"
+  el "h1" $ text "The Form Bakery - An invitation to the Laws of Form"
 

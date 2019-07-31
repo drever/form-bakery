@@ -94,8 +94,8 @@ pev = Var <$> letter
 pes :: Parser [Expr]
 pes = many pe
 
-parseExpr :: T.Text -> Either String Expr
-parseExpr s = either (Left . show) (Right . Call . id) $
+parseExpr :: T.Text -> Either T.Text Expr
+parseExpr s = either (Left . T.pack . show) (Right . Call . id) $
                  runParser (manyTill pe eof) () "" (T.unpack s)
 
 unmarked = Call []

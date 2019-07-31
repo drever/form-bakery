@@ -44,8 +44,9 @@ consequence l r = do
       parseAndRenderWidget l
       parseAndRenderWidget r
 
-parseError :: (DomBuilder t m, Show a) => a -> m [Event t b]
-parseError err = (text . T.pack . show $ err) >> (return [never])
+
+parseError :: (DomBuilder t m) => T.Text -> m [Event t b]
+parseError err = elClass "div" "errormessage" $ text ("The entered expression is not correct. Only  ,<> and <...> and character variables are allowed. Reason: " <> err) >> return [never]
 
 truthTable :: DomBuilder t m
       => Expr

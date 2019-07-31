@@ -11,11 +11,12 @@ import Markup (parseAndRenderWidget, consequence)
 introduction :: (DomBuilder t m, PostBuild t m) => m ()
 introduction = do
   el "h1" $ text "Introduction"
+  el "p" $ text "This is a playground for the Laws of Form."
 
   el "h2" $ text "The primary arithmetic"
   el "h3" $ text "Draw a distinction!"
 
-  el "p" $ text "This is a playground for the Laws of Form. Type `<>` into the textbox and draw a distinction!"
+  el "p" $ text "Type `<>` into the textbox and draw a distinction!"
   parseAndRenderWidget ""
   el "p" $ text "You should see a table with just one column. At the beginnig, the table was empty. When you started typing something you likely saw a parse error. Don't worry about this. When you drew the distinction by typing `<>` you will see the mark in the upper row, and the same mark in the lower row. The reason for this is, that the lower row is the evaluation of the expression in the upper row. If this doesn't make sense yet, that's ok. It should become clear in the next sections."
 
