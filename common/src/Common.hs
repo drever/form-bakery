@@ -96,7 +96,7 @@ pes = many pe
 
 parseExpr :: T.Text -> Either String Expr
 parseExpr s = either (Left . show) (Right . Call . id) $
-                 runParser pes () "" (T.unpack s)
+                 runParser (manyTill pe eof) () "" (T.unpack s)
 
 unmarked = Call []
 marked = Cross unmarked
