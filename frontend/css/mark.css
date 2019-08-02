@@ -38,6 +38,14 @@ span#code-highlight {
     padding-right: 5px;
 }
 
+input {
+    background-color: white;
+    width: 90%;
+    height: auto;
+    font-family: 'Raleway', sans-serif;
+    font-size: 20px;
+}
+
 .errormessage {
     font-family: 'Raleway', sans-serif;
     font-size: 18px;

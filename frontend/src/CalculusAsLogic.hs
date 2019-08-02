@@ -9,6 +9,7 @@ import Control.Lens ((^?), (+~), (?~), (#), from, at)
 
 import Markup (parseAndRenderWidget)
 
+
 calculusAsLogic :: (DomBuilder t m, PostBuild t m) => m ()
 calculusAsLogic = do
   elAttr "h1" (mempty & at "id" ?~ "calculus-as-logic") $ text "The caclulus as logic"
