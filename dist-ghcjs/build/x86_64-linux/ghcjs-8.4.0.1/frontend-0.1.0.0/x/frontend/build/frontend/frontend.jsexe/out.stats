@@ -6,7 +6,7 @@ common-0.1.0.0-inplace:  113757
 containers-0.5.11.0-GhhPXbBZ8rf1WBQjAVqqMW:246885
 dependent-map-0.2.4.0-DMPMYlmG4cR7elSMvzoKhG:56128
 dependent-sum-0.4.1-67rHSI4dU4Eh1zqJOAHqu:13812
-ghc-prim:                57163
+ghc-prim:                57306
 ghcjs-base-0.2.0.0-1zqNn6nIHQdAmmILf3TTxp:7702
 ghcjs-dom-jsffi-0.9.2.0-GnWNSjUvOFlLG3HjZwWTpH:139120
 ghcjs-prim-0.1.1.0-A1JdvSlggG4AS5cM95oali:7877
@@ -118,7 +118,7 @@ ghc-prim
     GHC.Classes:                        139
     GHC.IntWord64:                      3052
     GHC.Tuple:                          4226
-    GHC.Types:                          36097
+    GHC.Types:                          36240
 
 ghcjs-base-0.2.0.0-1zqNn6nIHQdAmmILf3TTxp
     Data.JSString:                      1506
@@ -227,5 +227,5 @@ transformers-0.5.5.0-8ZjexgxxdBLH8OWn8CZkwx
 
 
 
-packed metadata: 907792
+packed metadata: 907791
 
