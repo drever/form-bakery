@@ -9,16 +9,25 @@ import Data.Maybe
 import qualified Data.Map as Map
 import qualified Data.Text as T
 import Index (indexOfForms)
-import Introduction (introduction)
+import Introduction (primaryAlgebra, primaryArithmetic)
 import CalculusAsLogic (calculusAsLogic)
+import Control.Lens ((^?), (+~), (?~), (#), from, at)
 
 main :: IO ()
 main = mainWidgetWithCss css  $ do
   heading
-  introduction
-  calculusAsLogic
+  el "p" $ do text "This is a playground for the "
+              elAttr "a" (mempty & at "href" ?~ "https://en.wikipedia.org/wiki/Laws_of_Form") $ text "Laws of Form"
+              text ". The contents of the books are presented in an interactive fashion:"
+              el "ul" $ do
+                el "li" $ elAttr "a" (mempty & at "href" ?~ "#primary-arithmetic") $ text "The primary arithmetic"
+                el "li" $ elAttr "a" (mempty & at "href" ?~ "#primary-algebra") $ text "The primary algebra"
+                el "li" $ elAttr "a" (mempty & at "href" ?~ "#calculus-as-logic") $ text "The calculus as logic"
+                el "li" $ elAttr "a" (mempty & at "href" ?~ "#index-of-forms") $ text "The index of forms"
 
-  el "p" $ text "What follows is the index of forms"
+  primaryArithmetic
+  primaryAlgebra
+  calculusAsLogic
   indexOfForms
   -- el "p" (parseAndRenderWidget "<a>b")
 

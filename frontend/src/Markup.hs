@@ -9,7 +9,8 @@ module Markup (parseAndRenderWidget
              , expression
              , parseError
              , expressionSVG
-             , truthTable) where
+             , truthTable
+             , highlight) where
 
 import Control.Applicative
 import Common
@@ -45,6 +46,7 @@ consequence l r = do
       parseAndRenderWidget r
 
 
+highlight txt = elAttr "span" (mempty & at "id" ?~ "code-highlight") $ text txt
 parseError :: (DomBuilder t m) => T.Text -> m [Event t b]
 parseError err = elClass "div" "errormessage" $ text ("The entered expression is not correct. Only  ,<> and <...> and character variables are allowed. Reason: " <> err) >> return [never]
 
