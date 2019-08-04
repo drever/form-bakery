@@ -7,12 +7,12 @@ import Reflex.Dom
 import qualified Data.Text as T
 import Control.Lens ((^?), (+~), (?~), (#), from, at)
 
-import Markup (parseAndRenderWidget, consequence, highlight)
+import Markup (parseAndRenderWidget, consequence, highlight, id')
 
 primaryArithmetic :: (DomBuilder t m, PostBuild t m) => m ()
 primaryArithmetic = do
 
-  elAttr "h2" (mempty & at "id" ?~ "primary-arithmetic") $ text "The primary arithmetic"
+  elAttr "h2" (id' "primary-arithmetic") $ text "The primary arithmetic"
   el "h3" $ text "Draw a distinction!"
 
   el "p" $ do text "Type "
@@ -23,7 +23,7 @@ primaryArithmetic = do
               highlight "<>"
               text " you will see the mark in the upper row, and the same mark in the lower row. The reason for this is, that the lower row is the evaluation of the expression in the upper row. If this doesn't make sense yet, that's ok. It should become clear in the next sections."
 
-  el "h3" $ text "Condense two marks"
+  elAttr "h3" (id' "pa-condense") $ text "Condense two marks"
   el "p" $ do text "Write two marks next to each other by typing "
               highlight "<><>"
               text ". You should see two marks in the upper row. The lower row contains just one mark. This means that the expression with two marks is evaluated to an expression with just one mark. Two marks can be condensed to one mark. This also works repeatedly, try typing additional marks, e.g. "
@@ -38,6 +38,19 @@ primaryArithmetic = do
   el "p" $ do text "Write arbitrary expressions, e.g. "
               highlight "<<<<><>><>><>><><<<><>><><><>><>"
               text ". Grab a pen and paper and evaluate the expressions by hand. Use the form bakery to confirm the results!"
+
+  el "h3" $ text "Equality in the primary arithmetic"
+  el "p" $ do text "Each expression has a value, which can be obtained in a finite number of steps. The value is either the marked state "
+              highlight "<>"
+              text " or the unmakred state "
+              highlight " "
+              text ". When two expressions evaluate to the same state they are equal. Here you can see two expressions side-by-side which evaluate to the same value: "
+              el "p" $ consequence "<<<<>>><>><<>><>" "<><><<<>><<>>>"
+
+              text "They both evaluate to the marked state "
+              highlight "<>"
+              text ". Here is another pair of expressions of equal value which evaluates to the unmarked state: "
+              consequence "<<<<><><>>>>" "<<<<<<><><>>>>><<<<><><>>>>>"
 
 primaryAlgebra :: (DomBuilder t m, PostBuild t m) => m ()
 primaryAlgebra = do

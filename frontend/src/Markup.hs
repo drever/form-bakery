@@ -10,7 +10,9 @@ module Markup (parseAndRenderWidget
              , parseError
              , expressionSVG
              , truthTable
-             , highlight) where
+
+             , highlight
+             , id') where
 
 import Control.Applicative
 import Common
@@ -25,6 +27,9 @@ import qualified Reflex.Dom.Widget.SVG.Types as S
 import Control.Lens ((^?), (+~), (?~), (#), from, at)
 import Reflex.Dom.Core (MonadWidget, (=:))
 import qualified Data.List.NonEmpty as NE
+
+id' :: T.Text -> Map.Map T.Text T.Text
+id' x = mempty & at "id" ?~ x
 
 parseAndRenderWidget :: (DomBuilder t m, PostBuild t m) => T.Text -> m ()
 parseAndRenderWidget e = elClass "div" "parseAndRender" $ do
