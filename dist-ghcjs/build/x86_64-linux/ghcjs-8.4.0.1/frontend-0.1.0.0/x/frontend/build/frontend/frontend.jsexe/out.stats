@@ -6,12 +6,12 @@ common-0.1.0.0-inplace:  113757
 containers-0.5.11.0-GhhPXbBZ8rf1WBQjAVqqMW:246885
 dependent-map-0.2.4.0-DMPMYlmG4cR7elSMvzoKhG:56128
 dependent-sum-0.4.1-67rHSI4dU4Eh1zqJOAHqu:13812
-ghc-prim:                57306
+ghc-prim:                57882
 ghcjs-base-0.2.0.0-1zqNn6nIHQdAmmILf3TTxp:7702
 ghcjs-dom-jsffi-0.9.2.0-GnWNSjUvOFlLG3HjZwWTpH:139120
 ghcjs-prim-0.1.1.0-A1JdvSlggG4AS5cM95oali:7877
 integer-gmp:             6227
-main:                    929606
+main:                    939029
 parsec-3.1.13.0-Dmv2Jl3VhX660iuPm9hH4:79833
 primitive-0.6.3.0-EN7G6bIUziYESvlw7SsQBc:1286
 ref-tf-0.4.0.1-I3N9TyOnTSb5BoggGxOx1D:203
@@ -118,7 +118,7 @@ ghc-prim
     GHC.Classes:                        139
     GHC.IntWord64:                      3052
     GHC.Tuple:                          4226
-    GHC.Types:                          36240
+    GHC.Types:                          36816
 
 ghcjs-base-0.2.0.0-1zqNn6nIHQdAmmILf3TTxp
     Data.JSString:                      1506
@@ -149,9 +149,9 @@ integer-gmp
 
 main
     CalculusAsLogic:                    53796
-    Index:                              48178
-    Introduction:                       684340
-    Main:                               86880
+    Index:                              56611
+    Introduction:                       684346
+    Main:                               87864
     Markup:                             56412
 
 parsec-3.1.13.0-Dmv2Jl3VhX660iuPm9hH4
@@ -227,5 +227,5 @@ transformers-0.5.5.0-8ZjexgxxdBLH8OWn8CZkwx
 
 
 
-packed metadata: 907791
+packed metadata: 910281
 
