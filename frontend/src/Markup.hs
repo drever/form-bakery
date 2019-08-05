@@ -12,7 +12,11 @@ module Markup (parseAndRenderWidget
              , truthTable
 
              , highlight
-             , id') where
+             , id'
+             , toc
+             , section
+             , p
+             , SubSection (..)) where
 
 import Control.Applicative
 import Common
@@ -31,12 +35,27 @@ import qualified Data.List.NonEmpty as NE
 id' :: T.Text -> Map.Map T.Text T.Text
 id' x = mempty & at "id" ?~ x
 
+toc :: (DomBuilder t m) => [SubSection m] -> m ()
+toc xs = el "ul" $ mapM_ (\(SubSection t a _) ->
+                el "li" $ elAttr' "a" (mempty & at "href" ?~ ("#" <> a)) $ text t) xs
+
+p :: (DomBuilder t m) => T.Text -> T.Text -> m() -> m ()
+p t a c = do
+  elAttr "h3" (id' a) $ text t
+  el "p" c
+
+data SubSection m = SubSection { title :: T.Text, subSectionId :: T.Text, content :: m () }
+
+section :: (DomBuilder t m) => [SubSection m] -> m ()
+section xs = do toc xs
+                mapM_ (\(SubSection t a c) -> p t a c) xs
+
 parseAndRenderWidget :: (DomBuilder t m, PostBuild t m) => T.Text -> m ()
 parseAndRenderWidget e = elClass "div" "parseAndRender" $ do
       t <-  inputElement $ def
            & inputElementConfig_initialValue .~ e
       elClass "div" "output" $ do
-          dyn $ either parseError expression
+          dyn $ either parseError (const (return [never]))
                . parseExpr
                <$> _inputElement_value t
           dyn $ either (const (return never)) truthTable
@@ -52,6 +71,7 @@ consequence l r = do
 
 
 highlight txt = elAttr "span" (mempty & at "id" ?~ "code-highlight") $ text txt
+
 parseError :: (DomBuilder t m) => T.Text -> m [Event t b]
 parseError err = elClass "div" "errormessage" $ text ("The entered expression is not correct. Only  ,<> and <...> and character variables are allowed. Reason: " <> err) >> return [never]
 
@@ -64,10 +84,10 @@ truthTable e = elClass "div" "truthtable" $ do
                  vs -> do el "table" $ do
                              el "tr" $ do let ns = map fst . Map.toList . fst . head $ vs :: [Char]
                                           mapM_ (\v -> el "th" (text (T.pack . (:[]) $ v))) ns
-                                          el "th" (expression e)
+                                          elClass "th" "result" (expression e)
                              mapM_ (\vs'' -> el "tr" $ do let vs' = map snd . Map.toList . fst $ vs'' :: [Expr]
                                                           mapM_ (\v -> el "td" (expression $ v)) (vs' :: [Expr])
-                                                          el "td" (expression . snd $ vs'')) (vs :: [(Env, Expr)])
+                                                          elClass "td" "result" (expression . snd $ vs'')) (vs :: [(Env, Expr)])
                           return never
 
 expression :: DomBuilder t m
