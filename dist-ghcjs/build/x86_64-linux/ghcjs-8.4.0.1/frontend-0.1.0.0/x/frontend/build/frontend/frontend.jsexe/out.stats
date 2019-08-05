@@ -1,18 +1,18 @@
 code size summary per package:
 
-base:                    552822
+base:                    552826
 bytestring-0.10.8.2-ACj33vFBMyeAi499Z0Sdp2:45437
 common-0.1.0.0-inplace:  113757
 containers-0.5.11.0-GhhPXbBZ8rf1WBQjAVqqMW:246885
 dependent-map-0.2.4.0-DMPMYlmG4cR7elSMvzoKhG:56128
 dependent-sum-0.4.1-67rHSI4dU4Eh1zqJOAHqu:13812
-ghc-prim:                57882
+ghc-prim:                60372
 ghcjs-base-0.2.0.0-1zqNn6nIHQdAmmILf3TTxp:7702
 ghcjs-dom-jsffi-0.9.2.0-GnWNSjUvOFlLG3HjZwWTpH:139120
 ghcjs-prim-0.1.1.0-A1JdvSlggG4AS5cM95oali:7877
 integer-gmp:             6227
-main:                    939029
-parsec-3.1.13.0-Dmv2Jl3VhX660iuPm9hH4:79833
+main:                    1078460
+parsec-3.1.13.0-Dmv2Jl3VhX660iuPm9hH4:79835
 primitive-0.6.3.0-EN7G6bIUziYESvlw7SsQBc:1286
 ref-tf-0.4.0.1-I3N9TyOnTSb5BoggGxOx1D:203
 reflex-0.6.1-GmHpo3yEnQ54SCPXlKi10P:1177811
@@ -46,7 +46,7 @@ base
     Foreign.Marshal.Alloc:              1646
     Foreign.Storable:                   3444
     GHC.Arr:                            11052
-    GHC.Base:                           8238
+    GHC.Base:                           8239
     GHC.Conc.Sync:                      20451
     GHC.Enum:                           1562
     GHC.Err:                            16463
@@ -72,7 +72,7 @@ base
     GHC.IO.Handle.Types:                418
     GHC.IO.Unsafe:                      159
     GHC.IORef:                          1016
-    GHC.Int:                            11854
+    GHC.Int:                            11856
     GHC.List:                           174
     GHC.MVar:                           2522
     GHC.Num:                            174
@@ -81,7 +81,7 @@ base
     GHC.STRef:                          30185
     GHC.Show:                           4160
     GHC.Stack.CCS:                      1502
-    GHC.Stack.Types:                    13780
+    GHC.Stack.Types:                    13781
     GHC.TopHandler:                     282
     GHC.Unicode:                        174
     GHC.Weak:                           23005
@@ -117,8 +117,8 @@ ghc-prim
     GHC.CString:                        13649
     GHC.Classes:                        139
     GHC.IntWord64:                      3052
-    GHC.Tuple:                          4226
-    GHC.Types:                          36816
+    GHC.Tuple:                          4442
+    GHC.Types:                          39090
 
 ghcjs-base-0.2.0.0-1zqNn6nIHQdAmmILf3TTxp
     Data.JSString:                      1506
@@ -149,15 +149,15 @@ integer-gmp
 
 main
     CalculusAsLogic:                    53796
-    Index:                              56611
-    Introduction:                       684346
-    Main:                               87864
+    Index:                              85896
+    Introduction:                       780856
+    Main:                               101500
     Markup:                             56412
 
 parsec-3.1.13.0-Dmv2Jl3VhX660iuPm9hH4
     Text.Parsec.Char:                   22678
     Text.Parsec.Combinator:             24737
-    Text.Parsec.Error:                  2919
+    Text.Parsec.Error:                  2921
     Text.Parsec.Pos:                    28199
     Text.Parsec.Prim:                   475
     Text.ParserCombinators.Parsec.Prim: 825
@@ -227,5 +227,5 @@ transformers-0.5.5.0-8ZjexgxxdBLH8OWn8CZkwx
 
 
 
-packed metadata: 910281
+packed metadata: 926266
 
