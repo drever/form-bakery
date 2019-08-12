@@ -16,7 +16,7 @@ import Control.Lens ((^?), (+~), (?~), (#), from, at)
 main :: IO ()
 main = mainWidgetWithCss css  $ do
   heading
-  el "p" $ do text "This is a playground for the "
+  el "p" $ do text "This is a playground for "
               elAttr "a" (mempty & at "href" ?~ "https://en.wikipedia.org/wiki/Laws_of_Form") $ text "Laws of Form"
               text ". The contents of the books are presented in an interactive fashion, following the literal programming philosophy."
               el "ul" $ do
@@ -49,7 +49,7 @@ main = mainWidgetWithCss css  $ do
 
 heading :: DomBuilder t m => m ()
 heading = do
-  el "h1" $ text "The Form Bakery - An invitation to the Laws of Form"
+  el "h1" $ text "Form Bakery - An invitation to Laws of Form"
 
 about :: DomBuilder t m => m ()
 about = do
