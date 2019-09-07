@@ -52,8 +52,10 @@ data ExpressionClass =
 expression :: (DomBuilder t m, PostBuild t m)
       => (Dynamic t Expr)
       -> m (Event t Position)
-expression de = do --be <- expression' "" undefined
+expression de = do
+                   --be <- expression' "" undefined
                    --let ev = tagPromptlyDyn de be
+
                    postBuild <- getPostBuild
 
                    (t, _) <- elAttr' "div" def $
@@ -62,6 +64,8 @@ expression de = do --be <- expression' "" undefined
                                 (updated ((T.pack . show) <$> de))
                                , tag (current ((T.pack . show) <$> de)) postBuild
                                   ]
+
+                   -- t <- ((expression' "") <$> de)
 
                    notReadyUntil postBuild
 
