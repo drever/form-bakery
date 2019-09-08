@@ -12,7 +12,7 @@ import Markup (parseAndRenderWidget)
 
 calculusAsLogic :: (DomBuilder t m, PostBuild t m) => m ()
 calculusAsLogic = do
-  elAttr "h1" (mempty & at "id" ?~ "calculus-as-logic") $ text "The caclulus as logic"
+  elAttr "h1" (mempty & at "id" ?~ "calculus-as-logic") $ text "The calculus as logic"
 
   el "p" $ do text "The Laws of Form can be used to represent Boolean logic. Here are some examples of Boolean functions represented in the calculus of indications."
               el "ul" $ do
