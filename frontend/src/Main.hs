@@ -57,22 +57,9 @@ main = mainWidgetWithCss css  $ do
          initialExpr = let (Right e) = parseExpr "<<a>><>"
                         in e :: Expr
 
-
-
-c0 :: (DomBuilder t m, PostBuild t m) => Dynamic t T.Text -> m (Event t T.Text)
-c0 dynTxt = do postBuild <- getPostBuild
-               (t, _) <- elAttr' "div" def $
-                      textNode $ def
-                            & textNodeConfig_setContents .~ leftmost [
-                                (updated dynTxt)
-                              , tag (current dynTxt) postBuild
-                              ]
-               notReadyUntil postBuild
-               return $ const "Hallo Welt" <$> domEvent Click t
-
 div1 :: forall m t. (DomBuilder t m, PostBuild t m) => Int -> m (Event t [Int])
 div1 i = if i > 1
-    then do -- (t, _) <- elAttr' "div" (st i) (div1 (i `div` 2))
+    then do
             let content = (div1 (i `div` 2))
             (t, es) <- element
                           "div"
