@@ -9,6 +9,31 @@ import Control.Lens ((^?), (+~), (?~), (#), from, at)
 
 import Markup (parseAndRenderWidget, consequence, highlight, id', section, SubSection (..))
 
+heading :: DomBuilder t m => m ()
+heading = do
+  el "h1" $ text "Form Bakery - An invitation to Laws of Form"
+
+introduction :: DomBuilder t m => m ()
+introduction = do
+  el "p" $ do text "This is a playground for "
+              elAttr "a" (mempty & at "href" ?~ "https://en.wikipedia.org/wiki/Laws_of_Form") $ text "Laws of Form"
+              text ". The contents of the books are presented in an interactive fashion, following the literal programming philosophy."
+              el "ul" $ do
+                el "li" $ elAttr "a" (mempty & at "href" ?~ "#primary-arithmetic") $ text "The primary arithmetic"
+                el "li" $ elAttr "a" (mempty & at "href" ?~ "#primary-algebra") $ text "The primary algebra"
+                el "li" $ elAttr "a" (mempty & at "href" ?~ "#calculus-as-logic") $ text "The calculus as logic"
+                el "li" $ elAttr "a" (mempty & at "href" ?~ "#index-of-forms") $ text "The index of forms"
+                el "li" $ elAttr "a" (mempty & at "href" ?~ "#about") $ text "About"
+
+about :: DomBuilder t m => m ()
+about = do
+  elAttr "h1" (mempty & at "id" ?~ "about") $ text "About"
+  el "p" $ do text "Written in 2019 by Johannes Drever. The source code can be found on github: "
+              elAttr "a" (mempty & at "href" ?~ "https://github.com/drever/form-bakery") $ text "https://github.com/drever/form-bakery"
+              text ". The form bakery has been inspired by "
+              elAttr "a" (mempty & at "href" ?~ "http://www.markability.net/") $ text "the markable mark"
+              text "."
+
 primaryArithmetic :: (DomBuilder t m, PostBuild t m) => m ()
 primaryArithmetic = do
   elAttr "h2" (id' "primary-arithmetic") $ text "The primary arithmetic"
