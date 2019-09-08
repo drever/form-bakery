@@ -13,6 +13,7 @@ maintainer:          drever@lrz.uni-muenchen.de
 -- category:
 build-type:          Simple
 extra-source-files:  ChangeLog.md
+data-files: css/bg.png
 cabal-version:       >=1.10
 
 executable frontend
@@ -26,7 +27,6 @@ executable frontend
                      , common
                      , reflex-dom
                      , reflex
-                     , reflex-dom-svg
                      , text
                      , file-embed 
                      , mtl

@@ -13,37 +13,47 @@ import Introduction (primaryAlgebra, primaryArithmetic)
 import CalculusAsLogic (calculusAsLogic)
 import Control.Lens ((^?), (+~), (?~), (#), from, at)
 
+import Markup (parseError, expression, parseAndRenderWidget)
+import Common (parseExpr)
+
 main :: IO ()
 main = mainWidgetWithCss css  $ do
-  heading
-  el "p" $ do text "This is a playground for "
-              elAttr "a" (mempty & at "href" ?~ "https://en.wikipedia.org/wiki/Laws_of_Form") $ text "Laws of Form"
-              text ". The contents of the books are presented in an interactive fashion, following the literal programming philosophy."
-              el "ul" $ do
-                el "li" $ elAttr "a" (mempty & at "href" ?~ "#primary-arithmetic") $ text "The primary arithmetic"
-                el "li" $ elAttr "a" (mempty & at "href" ?~ "#primary-algebra") $ text "The primary algebra"
-                el "li" $ elAttr "a" (mempty & at "href" ?~ "#calculus-as-logic") $ text "The calculus as logic"
-                el "li" $ elAttr "a" (mempty & at "href" ?~ "#index-of-forms") $ text "The index of forms"
-                el "li" $ elAttr "a" (mempty & at "href" ?~ "#about") $ text "About"
-  primaryArithmetic
-  primaryAlgebra
-  calculusAsLogic
-  indexOfForms
-  about
+
+
+  -- heading
+  -- el "p" $ do text "This is a playground for "
+  --             elAttr "a" (mempty & at "href" ?~ "https://en.wikipedia.org/wiki/Laws_of_Form") $ text "Laws of Form"
+  --             text ". The contents of the books are presented in an interactive fashion, following the literal programming philosophy."
+  --             el "ul" $ do
+  --               el "li" $ elAttr "a" (mempty & at "href" ?~ "#primary-arithmetic") $ text "The primary arithmetic"
+  --               el "li" $ elAttr "a" (mempty & at "href" ?~ "#primary-algebra") $ text "The primary algebra"
+  --               el "li" $ elAttr "a" (mempty & at "href" ?~ "#calculus-as-logic") $ text "The calculus as logic"
+  --               el "li" $ elAttr "a" (mempty & at "href" ?~ "#index-of-forms") $ text "The index of forms"
+  --               el "li" $ elAttr "a" (mempty & at "href" ?~ "#about") $ text "About"
+  -- primaryArithmetic
+  -- primaryAlgebra
+  -- calculusAsLogic
+  -- indexOfForms
+  -- about
 
   -- el "p" (parseAndRenderWidget "<a>b")
 
+  el "p" $ do let pwidget = (either (\x -> do parseError x
+                                              return never) expression) . parseExpr $ "<<a>b>"
+              e <- pwidget
+              display =<< (holdDyn ["Los geht's!"] e)
+              return e
+
+
   -- el "hr" (text "")
-  -- display =<< holdDyn "bla" --(42, 0)
+  -- display =<< holdDyn "Los gehts!" --(42, 0)
   --         . traceEvent "Position"
   --         -- . leftmost
-  --         . mergeWith (++)
-  --         . (fmap (fmap show))
+  --         -- . mergeWith (++)
+  --         -- . (fmap (fmap show))
   --         -- . mergeWith (\e1@(d1, _) e2@(d2, _) -> if d1 >= d2 then e1 else e2)
-  --         =<< (either parseError expression . parseExpr $ "<<a>><>")
-  -- -- case parseExpr "<<><>>" of
-  -- --     Right e -> expressionSVG e
-  --     -- Left err -> (el "p" $ text "error") >> return never
+  --         =<< (either (parseError >> return never) expression . parseExpr $ "<<a>><>")
+
   return ()
    where css = $(embedFile "css/mark.css")
 
