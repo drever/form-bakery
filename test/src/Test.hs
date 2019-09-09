@@ -51,6 +51,7 @@ manipulation =
              check "<><><>" "2CB" "<><><<>>"
              check "<<><><>>" "C2CB" "<<><><<>>>"
              check "<<><><b>>" "C2CB" "<<><><<b>>>"
+             check "<<a>b>" "B" "<<<a>b>>"
 
 checkTable exp t = mapM_ (\(a, b, r) ->
          it (unwords [exp, ", a = ", show a, ", b = ", show b, " => r = ", show r]) $ do
