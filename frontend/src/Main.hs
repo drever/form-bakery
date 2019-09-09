@@ -22,16 +22,25 @@ import Control.Monad.Fix
 import Data.Proxy
 
 main :: IO ()
-main = let (Right expr) = parseExpr "<<a>b>"
-        in mainWidgetWithCss css (expressionWidget expr >> return ())
+main = let e = "<<a>b>"
+        in mainWidgetWithCss css $ do
+
+              -- t <-  inputElement $ def
+              --        & inputElementConfig_initialValue .~ e
+
+              -- e <- either (\e -> parseError e >> updated $ return never) expressionWidget
+              --          . parseExpr
+              --          <$> _inputElement_value t
+
+              heading
+              introduction
+              primaryArithmetic
+              primaryAlgebra
+              calculusAsLogic
+              indexOfForms
+              about
+
+              return ()
+
    where css = $(embedFile "css/mark.css")
-
-  -- heading
-  -- introduction
-  -- primaryArithmetic
-  -- primaryAlgebra
-  -- calculusAsLogic
-  -- indexOfForms
-  -- about
-
 

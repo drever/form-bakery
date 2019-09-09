@@ -59,20 +59,22 @@ expressionWidget expr = do
                         =<< dyn (expression <$> dynExpression')
   return dynExpression'
 
-parseAndRenderWidget :: (DomBuilder t m, PostBuild t m) => T.Text -> m ()
+parseAndRenderWidget :: (DomBuilder t m, PostBuild t m, MonadHold t m, MonadFix m)
+                     => T.Text
+                     -> m ()
 parseAndRenderWidget e = elClass "div" "parseAndRender" $ do
       t <-  inputElement $ def
            & inputElementConfig_initialValue .~ e
       elClass "div" "output" $ do
-          dyn $ either parseError (const (return ()))
-               . parseExpr
-               <$> _inputElement_value t
-          dyn $ either (const (return never)) truthTable
+          dyn $ either (\e -> parseError e >> return never) truthTable
               . parseExpr
               <$> _inputElement_value t
       return ()
 
-consequence :: (DomBuilder t m, PostBuild t m) => T.Text -> T.Text -> m ()
+consequence :: (DomBuilder t m, PostBuild t m, MonadHold t m, MonadFix m)
+            => T.Text
+            -> T.Text
+            -> m ()
 consequence l r = do
   elClass "div" "consequence" $ do
       parseAndRenderWidget l
@@ -84,7 +86,7 @@ highlight txt = elAttr "span" (mempty & at "id" ?~ "code-highlight") $ text txt
 parseError :: (DomBuilder t m) => T.Text -> m ()
 parseError err = elClass "div" "errormessage" $ text ("The entered expression is not correct. Only  ,<> and <...> and character variables are allowed. Reason: " <> err)
 
-truthTable :: DomBuilder t m
+truthTable :: (DomBuilder t m, MonadHold t m, PostBuild t m, MonadFix m)
       => Expr
       -> m (Event t ())
 truthTable e = elClass "div" "truthtable" $ do
@@ -93,7 +95,7 @@ truthTable e = elClass "div" "truthtable" $ do
                  vs -> do el "table" $ do
                              el "tr" $ do let ns = map fst . Map.toList . fst . head $ vs :: [Char]
                                           mapM_ (\v -> el "th" (text (T.pack . (:[]) $ v))) ns
-                                          elClass "th" "result" (expression e)
+                                          elClass "th" "result" ((expressionWidget e) >> return ())
                              mapM_ (\vs'' -> el "tr" $ do let vs' = map snd . Map.toList . fst $ vs'' :: [Expr]
                                                           mapM_ (\v -> el "td" (expression $ v)) (vs' :: [Expr])
                                                           elClass "td" "result" (expression . snd $ vs'')) (vs :: [(Env, Expr)])

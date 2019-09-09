@@ -6,6 +6,7 @@ import Reflex (Dynamic)
 import Reflex.Dom
 import qualified Data.Text as T
 import Control.Lens ((^?), (+~), (?~), (#), from, at)
+import Control.Monad.Fix
 
 import Markup (parseAndRenderWidget, consequence, highlight, id', section, SubSection (..))
 
@@ -34,7 +35,7 @@ about = do
               elAttr "a" (mempty & at "href" ?~ "http://www.markability.net/") $ text "the markable mark"
               text "."
 
-primaryArithmetic :: (DomBuilder t m, PostBuild t m) => m ()
+primaryArithmetic :: (DomBuilder t m, PostBuild t m, MonadHold t m, MonadFix m) => m ()
 primaryArithmetic = do
   elAttr "h2" (id' "primary-arithmetic") $ text "The primary arithmetic"
   section [SubSection "Draw a distinction!" "pa-distinction" $ do
@@ -69,7 +70,7 @@ primaryArithmetic = do
                 consequence "<<<>><>>" "<<>>"
       ]
 
-primaryAlgebra :: (DomBuilder t m, PostBuild t m) => m ()
+primaryAlgebra :: (DomBuilder t m, PostBuild t m, MonadHold t m, MonadFix m) => m ()
 primaryAlgebra = do
   elAttr "h2" (id' "primary-algebra") $ text "The primary algebra"
   section [SubSection "Variables" "#palg-variables" $ do

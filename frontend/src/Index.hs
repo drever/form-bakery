@@ -8,8 +8,9 @@ import qualified Data.Text as T
 
 import Markup (parseAndRenderWidget, consequence, highlight)
 import Control.Lens ((^?), (+~), (?~), (#), from, at)
+import Control.Monad.Fix
 
-indexOfForms :: (DomBuilder t m, PostBuild t m) => m ()
+indexOfForms :: (DomBuilder t m, PostBuild t m, MonadHold t m, MonadFix m) => m ()
 indexOfForms = do
   elAttr "h1" (mempty & at "id" ?~ "index-of-forms") $ text "Index of forms"
   el "p" $ text "The index of forms lists all theorems and consecquences of the Laws of Form. The nine consequences of the primary arithmetic are listed here. Use this as a reference."

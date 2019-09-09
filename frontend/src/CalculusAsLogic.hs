@@ -6,11 +6,13 @@ import Reflex (Dynamic)
 import Reflex.Dom
 import qualified Data.Text as T
 import Control.Lens ((^?), (+~), (?~), (#), from, at)
+import Control.Monad.Fix
 
 import Markup (parseAndRenderWidget)
 
 
-calculusAsLogic :: (DomBuilder t m, PostBuild t m) => m ()
+calculusAsLogic :: (DomBuilder t m, PostBuild t m, MonadHold t m, MonadFix m)
+                => m ()
 calculusAsLogic = do
   elAttr "h1" (mempty & at "id" ?~ "calculus-as-logic") $ text "The calculus as logic"
 
