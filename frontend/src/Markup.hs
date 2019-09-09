@@ -10,6 +10,7 @@ module Markup (parseAndRenderWidget
              , expression
              , parseError
              , truthTable
+             , expressionWidget
 
              , highlight
              , id'
@@ -47,6 +48,16 @@ data SubSection m = SubSection { title :: T.Text, subSectionId :: T.Text, conten
 section :: (DomBuilder t m) => [SubSection m] -> m ()
 section xs = do toc xs
                 mapM_ (\(SubSection t a c) -> p t a c) xs
+
+expressionWidget :: forall t m. (DomBuilder t m, MonadFix m, PostBuild t m, MonadHold t m)
+                 => Expr
+                 -> m (Dynamic t Expr)
+expressionWidget expr = do
+  rec
+      dynExpression' <- foldDyn insertMarkAt expr
+                        =<< switchHoldPromptly never
+                        =<< dyn (expression <$> dynExpression')
+  return dynExpression'
 
 parseAndRenderWidget :: (DomBuilder t m, PostBuild t m) => T.Text -> m ()
 parseAndRenderWidget e = elClass "div" "parseAndRender" $ do
@@ -103,8 +114,8 @@ instance Show ExpressionClass where
 
 expression :: DomBuilder t m
       => Expr
-      -> m (Event t [Position])
-expression = snd . (expression' "0")
+      -> m (Event t Position)
+expression = (fmap (fmap head)) . snd . (expression' "0")
     where expression' :: DomBuilder t m
                          => Position
                          -> Expr

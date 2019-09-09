@@ -28,6 +28,7 @@ parsing =
     it "show . read for arbitrary expressions id identity" $ do
         property $ \e -> let s = show (e :: Expr)
                           in (show . (read :: String -> Expr) $ s) == (s :: String)
+
 evaluation =
   describe "Evaluation" $ do
      describe "and" $ do
@@ -41,7 +42,7 @@ manipulation =
    describe "Manipulation" $ do
       let check e p r = do
               it (unwords ["insertMarkAt", e, p, "should be", r]) $ do
-                  insertMarkAt (read e) (T.pack p) `shouldBe` (read r)
+                insertMarkAt (T.pack p) (read e) `shouldBe` (read r)
        in do check "" "B" "<>"
              check "<>" "CB" "<<>>"
              check "<>" "0CB" "<<>>"
