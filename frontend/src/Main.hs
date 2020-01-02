@@ -15,7 +15,7 @@ import Introduction (heading, introduction, primaryAlgebra, primaryArithmetic, a
 import CalculusAsLogic (calculusAsLogic)
 import Control.Lens ((^?), (+~), (?~), (#), from, at)
 
-import Markup (parseError, expression, parseAndRenderWidget, expressionWidget)
+import Markup (parseError, expression, parseAndRenderWidget, expressionWidget, theRangeTester)
 import Common (parseExpr, insertMarkAt, Position, Expr)
 import Control.Monad.Fix
 
@@ -25,6 +25,8 @@ main :: IO ()
 main = let e = "<<a>b>"
         in mainWidgetWithCss css $ do
 
+              theRangeTester
+              parseAndRenderWidget "<<>><a><>"
               -- t <-  inputElement $ def
               --        & inputElementConfig_initialValue .~ e
 
@@ -32,13 +34,13 @@ main = let e = "<<a>b>"
               --          . parseExpr
               --          <$> _inputElement_value t
 
-              heading
-              introduction
-              primaryArithmetic
-              primaryAlgebra
-              calculusAsLogic
-              indexOfForms
-              about
+              -- heading
+              -- introduction
+              -- primaryArithmetic
+              -- primaryAlgebra
+              -- calculusAsLogic
+              -- indexOfForms
+              -- about
 
               return ()
 

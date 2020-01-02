@@ -17,6 +17,10 @@ module Markup (parseAndRenderWidget
              , toc
              , section
              , p
+
+             , c0
+             , theRangeTester
+
              , SubSection (..)) where
 
 import Control.Applicative
@@ -55,20 +59,39 @@ expressionWidget :: forall t m. (DomBuilder t m, MonadFix m, PostBuild t m, Mona
 expressionWidget expr = do
   rec
       dynExpression' <- foldDyn insertMarkAt expr
-                        =<< switchHoldPromptly never
+                        =<< switchHold never
                         =<< dyn (expression <$> dynExpression')
   return dynExpression'
 
-parseAndRenderWidget :: (DomBuilder t m, PostBuild t m, MonadHold t m, MonadFix m)
+parseAndRenderWidget :: forall t m. (DomBuilder t m, PostBuild t m, MonadHold t m, MonadFix m, MonadHold t m)
                      => T.Text
                      -> m ()
 parseAndRenderWidget e = elClass "div" "parseAndRender" $ do
-      t <-  inputElement $ def
-           & inputElementConfig_initialValue .~ e
-      elClass "div" "output" $ do
-          dyn $ either (\e -> parseError e >> return never) truthTable
-              . parseExpr
-              <$> _inputElement_value t
+      rec
+          t <- inputElement $ def
+                            & inputElementConfig_initialValue .~ e
+                            & inputElementConfig_setValue .~ xxx
+
+          let v = _inputElement_value t :: Dynamic t T.Text
+              texp = parseExpr <$> v :: Dynamic t (Either T.Text Expr)
+              texp' = constDyn marked :: Dynamic t Expr
+          nexp <- el "p" $ dyn $ (
+                     either (\err -> parseError err >> return v)
+                            (\expr -> ((((T.pack . show) <$>)<$>). truthTable) expr)
+                     <$> texp) :: m (Event t (Dynamic t T.Text))
+
+          let bla = (updated <$> nexp) :: Event t (Event t T.Text)
+          xxx <-switchHold never bla :: m (Event t T.Text)
+
+          -- e' <-  let fail err = do parseError err
+          --                          return e
+          --            success e = do expr <- truthTable e
+          --                           return expr
+          --         in either (fail :: T.Text -> m (Dynamic t T.Text))
+          --                   (success :: Expr -> m (Dynamic t T.Text))
+          --     . parseExpr
+          --     <$> _inputElement_value t
+
       return ()
 
 consequence :: (DomBuilder t m, PostBuild t m, MonadHold t m, MonadFix m)
@@ -79,6 +102,7 @@ consequence l r = do
   elClass "div" "consequence" $ do
       parseAndRenderWidget l
       parseAndRenderWidget r
+      return ()
 
 
 highlight txt = elAttr "span" (mempty & at "id" ?~ "code-highlight") $ text txt
@@ -88,19 +112,19 @@ parseError err = elClass "div" "errormessage" $ text ("The entered expression is
 
 truthTable :: (DomBuilder t m, MonadHold t m, PostBuild t m, MonadFix m)
       => Expr
-      -> m (Event t ())
-truthTable e = elClass "div" "truthtable" $ do
+      -> m (Dynamic t Expr)
+truthTable e = elClass "div" "truthtable" $
                 case listValues e of
-                 [] -> (text "") >>  return never
+                 [] -> (text "") >> (return $ constDyn $ Call [])
                  vs -> do el "table" $ do
-                             el "tr" $ do let ns = map fst . Map.toList . fst . head $ vs :: [Char]
+                             expr <- el "tr" $
+                                       do let ns = map fst . Map.toList . fst . head $ vs :: [Char]
                                           mapM_ (\v -> el "th" (text (T.pack . (:[]) $ v))) ns
-                                          elClass "th" "result" ((expressionWidget e) >> return ())
+                                          elClass "th" "result" (expressionWidget e)
                              mapM_ (\vs'' -> el "tr" $ do let vs' = map snd . Map.toList . fst $ vs'' :: [Expr]
                                                           mapM_ (\v -> el "td" (expression $ v)) (vs' :: [Expr])
                                                           elClass "td" "result" (expression . snd $ vs'')) (vs :: [(Env, Expr)])
-                          return never
-
+                             return expr
 
 data ExpressionClass =
           UnmarkedExpr
@@ -155,3 +179,57 @@ expression = (fmap (fmap head)) . snd . (expression' "0")
                     let de = const [cs] <$> domEvent Click t
                     return $ ev <> de
 
+-- testing
+c0 :: (DomBuilder t m, PostBuild t m) => Dynamic t T.Text -> m (Event t T.Text)
+c0 dynTxt = do postBuild <- getPostBuild
+               (t, _) <- elAttr' "div" def $
+                      textNode $ def
+                            & textNodeConfig_setContents .~ leftmost [
+                                (updated dynTxt)
+                              , tag (current dynTxt) postBuild
+                              ]
+               notReadyUntil postBuild
+               return $ const "Hallo Welt" <$> domEvent Click t
+
+theRangeTester :: forall t m. (DomBuilder t m, PostBuild t m, DomBuilderSpace m ~ GhcjsDomSpace) =>
+                 m ()
+theRangeTester = do
+  rg <- rangeInput (def & rangeInputConfig_initialValue .~ 16)
+  let xv = floor <$> _rangeInput_value rg
+  display xv
+  e3 <- dyn $ div1 <$> (+1) <$> xv
+  return ()
+
+div1 :: forall m t. (DomBuilder t m, PostBuild t m) => Int -> m (Event t [Int])
+div1 i = if i > 1
+    then do -- (t, _) <- elAttr' "div" (st i) (div1 (i `div` 2))
+            let content = (div1 (i `div` 2))
+            (t, es) <- element
+                          "div"
+                          (elementConfig i)
+                          content
+            return $ -- (traceEvent $ "hey" <> (show i) <> ": ") $
+                 let newEvent = const [i] <$> domEvent Click t
+                 in es <> newEvent
+
+    else do (t, _) <- element "div" (elementConfig i) blank
+            return $ -- (traceEvent $ "hey" <> (show i) <> ": ") $
+                const [i] <$> domEvent Click t
+
+      where colrs =
+             concat $ repeat ["#FFEB3B", "#2196F3", "#FF00FF", "#04F3A5", "#60FBAA"]
+            st :: Int -> Map.Map T.Text T.Text
+            st i = (mempty & at "style" ?~ ("width: " <> (T.pack . show $ i * 10) <> "px"
+                                     <> "; height: " <> (T.pack . show $ i * 10) <> "px"
+                                     <> "; background: " <> (colrs !! (i - 1))
+                                     ))
+            elementConfig' :: Int -> ElementConfig EventResult t (DomBuilderSpace m)
+            elementConfig' i = def & (initialAttributes .~ Map.mapKeys (AttributeName Nothing) (st i))
+            elementConfig i =
+                          (elementConfig' i)
+                               { _elementConfig_eventSpec =
+                                      (addEventSpecFlags
+                                           (Proxy :: Proxy (DomBuilderSpace m))
+                                           Click
+                                           (const stopPropagation)
+                                           (_elementConfig_eventSpec (elementConfig' i))) }
