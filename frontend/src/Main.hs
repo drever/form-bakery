@@ -15,7 +15,7 @@ import Introduction (heading, introduction, primaryAlgebra, primaryArithmetic, a
 import CalculusAsLogic (calculusAsLogic)
 import Control.Lens ((^?), (+~), (?~), (#), from, at)
 
-import Markup (parseError, expression, parseAndRenderWidget, expressionWidget, theRangeTester)
+import Markup (parseError, expression, parseAndRenderWidget, expressionWidget, theRangeTester, dragTester)
 import Common (parseExpr, insertMarkAt, Position, Expr)
 import Control.Monad.Fix
 
@@ -27,7 +27,8 @@ main = let e = "<<a>b>"
 
               theRangeTester
               parseAndRenderWidget "<<>><a><>"
-              -- t <-  inputElement $ def
+              dragTester
+
               --        & inputElementConfig_initialValue .~ e
 
               -- e <- either (\e -> parseError e >> updated $ return never) expressionWidget

@@ -148,3 +148,16 @@ th .result {
   display: inline-flex;
   min-width: 500px;
 }
+
+.test-class {
+  width: 200px;
+  height: 200px;
+  background-color: #d3b9ea
+}
+
+#drag-rect {
+  width: 0px;
+  height: 0px;
+  background-color: #1042DB66;
+  display: none;
+}

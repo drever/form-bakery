@@ -20,6 +20,7 @@ module Markup (parseAndRenderWidget
 
              , c0
              , theRangeTester
+             , dragTester
 
              , SubSection (..)) where
 
@@ -68,30 +69,18 @@ parseAndRenderWidget :: forall t m. (DomBuilder t m, PostBuild t m, MonadHold t 
                      -> m ()
 parseAndRenderWidget e = elClass "div" "parseAndRender" $ do
       rec
-          t <- inputElement $ def
-                            & inputElementConfig_initialValue .~ e
-                            & inputElementConfig_setValue .~ xxx
+          text <- do switchedText <- switchHold never (updated <$> newText)
+                     inputElement $ def
+                               & inputElementConfig_initialValue .~ e
+                               & inputElementConfig_setValue .~ switchedText
 
-          let v = _inputElement_value t :: Dynamic t T.Text
-              texp = parseExpr <$> v :: Dynamic t (Either T.Text Expr)
-              texp' = constDyn marked :: Dynamic t Expr
-          nexp <- el "p" $ dyn $ (
-                     either (\err -> parseError err >> return v)
-                            (\expr -> ((((T.pack . show) <$>)<$>). truthTable) expr)
-                     <$> texp) :: m (Event t (Dynamic t T.Text))
-
-          let bla = (updated <$> nexp) :: Event t (Event t T.Text)
-          xxx <-switchHold never bla :: m (Event t T.Text)
-
-          -- e' <-  let fail err = do parseError err
-          --                          return e
-          --            success e = do expr <- truthTable e
-          --                           return expr
-          --         in either (fail :: T.Text -> m (Dynamic t T.Text))
-          --                   (success :: Expr -> m (Dynamic t T.Text))
-          --     . parseExpr
-          --     <$> _inputElement_value t
-
+          newText <- (dyn $ let failure err = do parseError err
+                                                 return (_inputElement_value text)
+                                success = ((T.pack . show <$>)<$>) . truthTable
+                                parsedExpression = parseExpr <$> _inputElement_value text
+                             in either failure
+                                       success
+                                       <$> parsedExpression) :: m (Event t (Dynamic t T.Text))
       return ()
 
 consequence :: (DomBuilder t m, PostBuild t m, MonadHold t m, MonadFix m)
@@ -233,3 +222,59 @@ div1 i = if i > 1
                                            Click
                                            (const stopPropagation)
                                            (_elementConfig_eventSpec (elementConfig' i))) }
+
+data DragStatus = BeginRect Int Int
+                | SizeRect Int Int
+                | EndRect Int Int
+
+data RectState = RectState {
+    x :: Int
+  , y :: Int
+  , width :: Int
+  , height :: Int
+  , isDragging :: Bool
+}
+
+fromRectState (RectState x y w h i) = ((x, y), (w, h))
+
+dragTest :: forall t m. (DomBuilder t m, MonadFix m, PostBuild t m, MonadHold t m) =>
+            m (Dynamic t ((Int, Int), (Int, Int)))
+dragTest = do
+     rec
+              (t1, _) <- elAttr' "div" (mempty & at "class" ?~ "test-class") blank
+              elDynAttr "div" (rectSize <$> s) blank
+
+              s <- foldDyn (flip updateRectState)
+                           (RectState 0 0 0 0 False)
+                           (leftmost [ uncurry BeginRect <$> domEvent Mousedown t1
+                                     , uncurry EndRect <$> domEvent Mouseup t1
+                                     , uncurry SizeRect <$> domEvent Mousemove t1]) :: m (Dynamic t RectState)
+
+     return (fromRectState <$> s)
+
+      where updateRectState s = \case
+               BeginRect x y -> RectState x y 0 0 True
+               SizeRect x' y' -> case isDragging s of
+                                         True -> s { width = x' - x s
+                                                   , height = y' - y s }
+                                         False -> s
+               EndRect x' y' -> s { isDragging = False }
+            rectSize :: RectState -> Map.Map T.Text T.Text
+            rectSize s = mempty & at "id" ?~ "drag-rect"
+                            & at "style" ?~ T.intercalate ";" [
+                                  "top: " <> (T.pack . show . x $ s) <> "px"
+                                , "left: " <> (T.pack . show . y $ s) <> "px"
+                                , "width: " <> (T.pack . show . width $ s) <> "px"
+                                , "height: " <> (T.pack . show .height $ s) <> "px"
+                                , "position: absolute"
+                                , "display: " <> case isDragging s of
+                                                  True -> "block"
+                                                  False -> "none"]
+
+
+dragTester :: forall t m. (DomBuilder t m, MonadFix m, PostBuild t m, MonadHold t m) =>
+              m ()
+dragTester = do x <- dragTest
+                display x
+                return ()
+
