@@ -74,13 +74,14 @@ parseAndRenderWidget e = elClass "div" "parseAndRender" $ do
                                & inputElementConfig_initialValue .~ e
                                & inputElementConfig_setValue .~ switchedText
 
-          newText <- (dyn $ let failure err = do parseError err
+          newText ::  Event t (Dynamic t T.Text) <- dyn $
+                            let failure err = do parseError err
                                                  return (_inputElement_value text)
                                 success = ((T.pack . show <$>)<$>) . truthTable
                                 parsedExpression = parseExpr <$> _inputElement_value text
                              in either failure
                                        success
-                                       <$> parsedExpression) :: m (Event t (Dynamic t T.Text))
+                                       <$> parsedExpression
       return ()
 
 consequence :: (DomBuilder t m, PostBuild t m, MonadHold t m, MonadFix m)
@@ -104,15 +105,15 @@ truthTable :: (DomBuilder t m, MonadHold t m, PostBuild t m, MonadFix m)
       -> m (Dynamic t Expr)
 truthTable e = elClass "div" "truthtable" $
                 case listValues e of
-                 [] -> (text "") >> (return $ constDyn $ Call [])
-                 vs -> do el "table" $ do
+                   [] -> (text "") >> (return $ constDyn $ Call [])
+                   vs  -> el "table" $ do
                              expr <- el "tr" $
-                                       do let ns = map fst . Map.toList . fst . head $ vs :: [Char]
+                                       do let ns :: [Char] = map fst . Map.toList . fst . head $ vs
                                           mapM_ (\v -> el "th" (text (T.pack . (:[]) $ v))) ns
                                           elClass "th" "result" (expressionWidget e)
-                             mapM_ (\vs'' -> el "tr" $ do let vs' = map snd . Map.toList . fst $ vs'' :: [Expr]
-                                                          mapM_ (\v -> el "td" (expression $ v)) (vs' :: [Expr])
-                                                          elClass "td" "result" (expression . snd $ vs'')) (vs :: [(Env, Expr)])
+                             mapM_ (\vs'' -> el "tr" $ do let vs' :: [Expr] = map snd . Map.toList . fst $ vs''
+                                                          mapM_ (\v -> el "td" (expression $ v)) vs'
+                                                          elClass "td" "result" (expression . snd $ vs'')) vs
                              return expr
 
 data ExpressionClass =
