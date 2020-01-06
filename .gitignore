@@ -9,3 +9,10 @@ dist-ghcjs
 ghc-frontend-result/
 ghc-frontend-result
 .ghc.environment.x86_64-darwin-8.4.4
+dist-newstyle
+result
+result-android
+result-ios
+result-exe
+.attr-cache
+ghcid-output.txt
