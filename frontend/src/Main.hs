@@ -16,7 +16,7 @@ import CalculusAsLogic (calculusAsLogic)
 import Control.Lens ((^?), (+~), (?~), (#), from, at)
 
 import Markup (parseError, expression, parseAndRenderWidget, expressionWidget, theRangeTester, dragTester)
-import Common (parseExpr, insertMarkAt, Position, Expr)
+import Common (parseExpr, insertMarkAt, Position, Expr, marked)
 import Control.Monad.Fix
 
 import Data.Proxy

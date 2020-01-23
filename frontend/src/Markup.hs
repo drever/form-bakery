@@ -242,8 +242,8 @@ dragTest :: forall t m. (DomBuilder t m, MonadFix m, PostBuild t m, MonadHold t 
             m (Dynamic t ((Int, Int), (Int, Int)))
 dragTest = do
      rec
-              (t1, _) <- elAttr' "div" (mempty & at "class" ?~ "test-class") blank
-              elDynAttr "div" (rectSize <$> s) blank
+              (t1, _) <-  elAttr' "div" (mempty & at "class" ?~ "test-class") $
+                                elDynAttr "div" (rectSize <$> s) blank
 
               s <- foldDyn (flip updateRectState)
                            (RectState 0 0 0 0 False)
@@ -263,8 +263,8 @@ dragTest = do
             rectSize :: RectState -> Map.Map T.Text T.Text
             rectSize s = mempty & at "id" ?~ "drag-rect"
                             & at "style" ?~ T.intercalate ";" [
-                                  "top: " <> (T.pack . show . x $ s) <> "px"
-                                , "left: " <> (T.pack . show . y $ s) <> "px"
+                                  "top: " <> (T.pack . show . y $ s) <> "px"
+                                , "left: " <> (T.pack . show . x $ s) <> "px"
                                 , "width: " <> (T.pack . show . width $ s) <> "px"
                                 , "height: " <> (T.pack . show .height $ s) <> "px"
                                 , "position: absolute"
