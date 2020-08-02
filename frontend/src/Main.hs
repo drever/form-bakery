@@ -21,13 +21,23 @@ import Control.Monad.Fix
 
 import Data.Proxy
 
+-- import qualified Language.Javascrip.JSaddle as DOM
+
+-- foreign import javascript unsafe
+--     "$($1).sidebar({  dimPage: $2   });alert($2);"
+    -- js_configSidebar :: Element -> Bool -> DOM.JSM ()
+
 main :: IO ()
 main = let e = "<<a>b>"
         in mainWidgetWithCss css $ do
+              (t, _) <- el' "div" $ blank
 
-              theRangeTester
-              parseAndRenderWidget "<<>><a><>"
-              dragTester
+              -- theRangeTester
+              parseAndRenderWidget "a"
+              -- mapM_ (dragTester . T.pack . show) [1..1]
+
+              -- xs <- foldDyn const (42.0) (domEvent Scroll t)
+              -- display xs
 
               --        & inputElementConfig_initialValue .~ e
 

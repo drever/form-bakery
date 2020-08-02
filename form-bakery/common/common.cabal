@@ -9,6 +9,9 @@ library
                , obelisk-route
                , mtl
                , text
+               , containers
+               , hashable
+               , parsec
   default-extensions:
     TypeFamilies
     PolyKinds

@@ -37,7 +37,10 @@ data Expr =
 instance Hashable Expr where
 
 type Env = Map.Map Char Expr
-type Position = T.Text
+data Position = PCross Position
+              | PCall Int Position
+              | PVar
+              deriving (Show, Read)
 
 instance Show Expr where
   show (Cross e) = intercalate "" ["<", show e, ">"]
@@ -57,16 +60,17 @@ listValues e = map (\env -> let (Right r) = eval env e
                              in (env, r)) (allEnvs e)
 
 insertMarkAt :: Position -> Expr -> Expr
-insertMarkAt "B" e = Cross e
-insertMarkAt "" um@(Call []) = Cross um
-insertMarkAt (T.uncons -> Just ('0', rs)) m@(Cross _) = insertMarkAt rs m
-insertMarkAt (T.uncons -> Just ('C', rs)) (Cross e) = Cross $ insertMarkAt rs e
-insertMarkAt (T.uncons -> Just (r, rs)) (Call es) =
-    let i = read (r:[])
-    in Call $ foldr (\(j, e) acc ->
-           if i == j
-                then (insertMarkAt rs e):acc
-                else e:acc) [] (zip [0..] es)
+insertMarkAt _ e = e
+-- insertMarkAt "B" e = Cross e
+-- insertMarkAt "" um@(Call []) = Cross um
+-- insertMarkAt (T.uncons -> Just ('0', rs)) m@(Cross _) = insertMarkAt rs m
+-- insertMarkAt (T.uncons -> Just ('C', rs)) (Cross e) = Cross $ insertMarkAt rs e
+-- insertMarkAt (T.uncons -> Just (r, rs)) (Call es) =
+--     let i = read (r:[])
+--     in Call $ foldr (\(j, e) acc ->
+--            if i == j
+--                 then (insertMarkAt rs e):acc
+--                 else e:acc) [] (zip [0..] es)
 
 allEnvs :: Expr -> [Env]
 allEnvs e = let getVars :: Expr -> [Char]

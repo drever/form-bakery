@@ -26,8 +26,9 @@ main = let e = "<<a>b>"
         in mainWidgetWithCss css $ do
 
               theRangeTester
-              parseAndRenderWidget "<<>><a><>"
-              dragTester
+  
+              -- parseAndRenderWidget "<<>><a><>"
+              -- dragTester
 
               --        & inputElementConfig_initialValue .~ e
 
